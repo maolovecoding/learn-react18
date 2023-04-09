@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "jsx": "react-jsxdev",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "react/*": ["./src/packages/react/*"],
+      "react-dom/*": ["./src/packages/react-dom/*"],
+      "react-reconciler/*": ["./src/packages/react-reconciler/*"],
+      "scheduler/*": ["./src/packages/scheduler/*"],
+      "shared/*": ["./src/packages/shared/*"],
+    }
+  }
+}
