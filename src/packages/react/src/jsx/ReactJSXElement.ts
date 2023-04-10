@@ -61,3 +61,16 @@ const RESERVED_PROPS = {
   __self: true,
   __source: true
 }
+
+export interface IVNode{
+  $$typeof: symbol;
+  type: any;
+  key?: any;
+  ref?: any;
+  props: IVNodeProps;
+}
+
+export interface IVNodeProps{
+  [key: string]: any
+  children: IVNode[] | IVNode | string
+}

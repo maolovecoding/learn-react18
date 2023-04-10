@@ -66,3 +66,20 @@ export default defineConfig({
   }
 }
 ```
+
+### react-dom
+虚拟DOM转真实DOM。
+
+
+### requestIdleCallback
+1. 兼容性差，react利用MessageChannel自己实现了一个
+2. 执行时间不可控
+react内部实现了一个，里面把每帧的执行时间定为5ms
+
+### fiber
+
+1. fiber是一个执行单元（原子）
+2. fiber是一个数据结构
+以前，react虚拟DOM生成真实DOM是一气呵成的，不可中断。如果工作时间过长可能引起卡顿。
+有了fiber之后，虚拟DOM => fiber => 生成真实DOM
+中间多了fiber的过程，因为fiber是一个类链表结构，可以方便的中断和重启
