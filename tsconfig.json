@@ -8,6 +8,7 @@
     "paths": {
       "react/*": ["./src/packages/react/*"],
       "react-dom/*": ["./src/packages/react-dom/*"],
+      "react-dom-bindings/*": ["./src/packages/react-dom-bindings/*"],
       "react-reconciler/*": ["./src/packages/react-reconciler/*"],
       "scheduler/*": ["./src/packages/scheduler/*"],
       "shared/*": ["./src/packages/shared/*"],

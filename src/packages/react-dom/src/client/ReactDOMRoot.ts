@@ -1,16 +1,17 @@
 import { updateContainer, createContainer } from 'react-reconciler/src/ReactFiberReconciler';
 import { FiberRootNode } from 'react-reconciler/src/createFiberRoot';
+import { IVNode } from 'react/src/jsx/ReactJSXElement';
 
 class ReactDOMRoot {
-  private _internalRoot: any
-  constructor(interalRoot:any){
+  private _internalRoot: FiberRootNode
+  constructor(interalRoot: FiberRootNode){
     this._internalRoot = interalRoot
   }
   /**
    * 虚拟dom渲染为真实DOM
    * @param children 虚拟DOM
    */
-  render(children: FiberRootNode){
+  render(children: IVNode){
     const root = this._internalRoot
     // 更新容器
     updateContainer(children, root)

@@ -2,6 +2,8 @@ import { IVNode } from "react/src/jsx/ReactJSXElement";
 import { FiberRootNode } from "./createFiberRoot";
 import { createFiberRoot } from './createFiberRoot'
 import { createUpdate, enqueueUpdate } from "./ReactFiberClassUpdateQueue";
+import { markUpdateLaneFromFiberToRoot } from "./ReactFiberConcurrentUpdates";
+import { scheduleUpdateOnFiber } from "./ReactFiberWorkLoop";
 /**
  * 创建 fiberRoot
  * @param containerInfo 
@@ -22,5 +24,6 @@ export const updateContainer = (element: IVNode, container: FiberRootNode)=>{
   // 要更新的虚拟dom
   update.payload = { element }
   // 入队 更新对象添加到current这个根fiber的更新队列上
-  enqueueUpdate(current, update)
+  const root = enqueueUpdate(current, update)
+  scheduleUpdateOnFiber(root)
 }

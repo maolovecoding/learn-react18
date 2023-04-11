@@ -1,0 +1,1 @@
+export default <T extends unknown[]>(o: unknown): o is T => Array.isArray(o)
