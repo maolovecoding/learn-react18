@@ -4,7 +4,7 @@ import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 import { processUpdateQueue } from "./ReactFiberClassUpdateQueue";
 import { IVNode, IVNodeProps } from "react/src/jsx/ReactJSXElement";
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
-import { shouldSetTextContent } from "react-dom-bindings/src/ReactDOMHostConfig";
+import { shouldSetTextContent } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 /**
  * 
  * @param current 老fiber

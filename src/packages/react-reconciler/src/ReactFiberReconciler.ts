@@ -25,5 +25,5 @@ export const updateContainer = (element: IVNode, container: FiberRootNode)=>{
   update.payload = { element }
   // 入队 更新对象添加到current这个根fiber的更新队列上
   const root = enqueueUpdate(current, update)
-  scheduleUpdateOnFiber(root)
+  scheduleUpdateOnFiber(root as FiberRootNode)
 }

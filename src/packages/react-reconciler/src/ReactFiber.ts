@@ -7,7 +7,7 @@ import { FiberRootNode } from "./createFiberRoot";
 /**
  * 创建根fiber节点
  */
-export const createHostRootFiber = ()=>{
+export const createHostRootFiber = () => {
   return createFiber(HostRoot, null, null)
 }
 export const createFiber = (tag:number, pendingProps, key) => {
@@ -15,7 +15,13 @@ export const createFiber = (tag:number, pendingProps, key) => {
 }
 export class FiberNode{
   // 每个虚拟DOM => Fiber节点 => 真实dom原生
-  stateNode: FiberRootNode = null// 此fiber对应的真实dom节点
+  /**
+   *
+   * 此fiber对应的真实dom节点
+   * @type {(FiberRootNode | Node)}
+   * @memberof FiberNode
+   */
+  stateNode: FiberRootNode | Node = null
   type: any = null // fiber类型 来自于虚拟DOM节点的type， span div
 
   // fiber树结构
