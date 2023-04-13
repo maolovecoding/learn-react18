@@ -20,7 +20,13 @@ export const createFiberRoot = (containerInfo:HTMLElement)=>{
  */
 export class FiberRootNode{
   containerInfo: HTMLElement
-  current: FiberNode // 指的是当前页面的fiber树的根节点
+  current: FiberNode; // 指的是当前页面的fiber树的根节点
+  /**
+   * 最新构建出来的fiber树
+   * @type {FiberNode}
+   * @memberof FiberRootNode
+   */
+  finishedWork: FiberNode = null 
   constructor(containerInfo: HTMLElement){
     this.containerInfo = containerInfo
   }

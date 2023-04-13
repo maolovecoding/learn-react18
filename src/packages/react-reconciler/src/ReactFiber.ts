@@ -64,7 +64,7 @@ subtreeFlags: number = NoFlags
  * 双缓冲池技术：是在内存或者显存中开辟一块与屏幕大小一样的存储区域，作为缓冲屏幕，将下一帧要显示的图像绘制到这个缓冲屏幕上面，在显示的时候
  * 将虚拟屏幕中的数据复制到可见视频缓冲区里面去
  */
-alternate: FiberNode = null
+  alternate: FiberNode = null
 /**
  * 索引 fiber自身在父fiber中排第几
  * TODO： 在哪里出现的？ 出现在 placeChild这个方法

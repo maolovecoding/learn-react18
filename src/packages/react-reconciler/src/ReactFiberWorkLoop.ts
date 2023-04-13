@@ -1,3 +1,4 @@
+import { MutationMask, NoFlags } from './ReactFiberTags';
 /**
  * @Author: 毛毛 
  * @Date: 2023-04-10 22:56:50 
@@ -11,6 +12,7 @@ import { FiberRootNode } from "./createFiberRoot";
 import { FiberNode, createWorkInProgress } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
 import { completeWork } from "./ReactFiberCompleteWork";
+import { commitMutaionEffectsOnFiber } from './ReactFiberCommitWork';
 
 /**
  * 正在进行中的工作
@@ -39,6 +41,10 @@ const ensureRootIsScheduled = (root: FiberRootNode) => {
 function performConcurrentWorkOnRoot(root: FiberRootNode){
   // 同步渲染根节点 初次渲染的时候 都是同步
   renderRootSync(root)
+  // 开始提交 commit 执行副作用 修改真实DOM
+  const finishedWork = root.current.alternate; // 最新构建出的fiber树
+  root.finishedWork = finishedWork
+  commitRoot(root)
 }
 /**
  * 同步渲染
@@ -58,7 +64,6 @@ const renderRootSync = (root: FiberRootNode) => {
 const prepareFreshStack = (root: FiberRootNode) => {
   // root.current 老的根fiber
   workInProgress = createWorkInProgress(root.current, null)
-  console.log(workInProgress)
 }
 /**
  * 同步的工作循环
@@ -105,4 +110,19 @@ const completeUnitOfWork = (unitOfWork: FiberNode) => {
     // 没有兄弟节点了 没有弟弟 是父节点的最后一个孩子节点 也就是父fiber所有子fiber都完成工作，父fiber也完成工作了
     workInProgress = completedWork = returnFiber
   } while(completedWork !== null)
+};
+/**
+ * 提交
+ * @param root 根fiber
+ */
+const commitRoot = (root: FiberRootNode) => {
+  const { finishedWork } = root
+  // 判断子树有无副作用
+  const subtreeHasEffects = (finishedWork.subtreeFlags & MutationMask) !== NoFlags
+  const rootHasEffect = (finishedWork.subtreeFlags & MutationMask) !== NoFlags
+  if (subtreeHasEffects || rootHasEffect) {
+    // 提交dom操作
+    commitMutaionEffectsOnFiber(finishedWork, root)
+  }
+  root.current = finishedWork // dom渲染完成 root指向最新的fiber树
 }

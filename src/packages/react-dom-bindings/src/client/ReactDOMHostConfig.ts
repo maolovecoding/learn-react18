@@ -50,3 +50,20 @@ export const appendInitialChild = (parent: Node, child: Node) => {
 export const finalizeInitialChildren = (domElement: Node, type, props) => {
   setInitialProperties(domElement, type, props)
 }
+/**
+ * 插入子dom 
+ * @param parentInstance 
+ * @param child 
+ */
+export const appendChild = (parentInstance: Node, child: Node) => {
+  parentInstance.appendChild(child)
+}
+/**
+ * 在指定的beforeChild前面插入子dom
+ * @param parentInstance 
+ * @param child 
+ * @param beforeChild 
+ */
+export const insertBefore = (parentInstance: Node, child: Node, beforeChild: Node) => {
+  parentInstance.insertBefore(child, beforeChild)
+}
