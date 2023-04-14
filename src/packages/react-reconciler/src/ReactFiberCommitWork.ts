@@ -6,6 +6,7 @@ import { FiberRootNode } from "./createFiberRoot";
 
 /**
  * 遍历fiber树 执行fiber上的副作用
+ * 副作用是先执行子fiber的再执行父fiber的 深度优先
  * @param finishedWork 
  * @param root 
  */

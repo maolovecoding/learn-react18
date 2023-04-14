@@ -1,4 +1,4 @@
-import { MutationMask, NoFlags } from './ReactFiberTags';
+import { MutationMask, NoFlags, Placement, Update } from './ReactFiberTags';
 /**
  * @Author: 毛毛 
  * @Date: 2023-04-10 22:56:50 
@@ -13,6 +13,7 @@ import { FiberNode, createWorkInProgress } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
 import { completeWork } from "./ReactFiberCompleteWork";
 import { commitMutaionEffectsOnFiber } from './ReactFiberCommitWork';
+import { HostComponent, HostRoot, HostText } from './ReactWorkTags';
 
 /**
  * 正在进行中的工作
@@ -117,6 +118,8 @@ const completeUnitOfWork = (unitOfWork: FiberNode) => {
  */
 const commitRoot = (root: FiberRootNode) => {
   const { finishedWork } = root
+  // TODO 打印fiber树的所有副作用
+  printFinishedWork(finishedWork)
   // 判断子树有无副作用
   const subtreeHasEffects = (finishedWork.subtreeFlags & MutationMask) !== NoFlags
   const rootHasEffect = (finishedWork.subtreeFlags & MutationMask) !== NoFlags
@@ -125,4 +128,34 @@ const commitRoot = (root: FiberRootNode) => {
     commitMutaionEffectsOnFiber(finishedWork, root)
   }
   root.current = finishedWork // dom渲染完成 root指向最新的fiber树
+};
+
+const printFinishedWork = (fiber: FiberNode) => {
+  let child = fiber.child
+  while (child !== null) {
+    printFinishedWork(child)
+    child = child.sibling
+  }
+  if (fiber.flags !== 0) {
+    console.log(getFlags(fiber.flags), getTag(fiber.tag), fiber.type, fiber.memoizedProps)
+  }
+};
+
+const getTag = (tag: number) => {
+  switch (tag) {
+    case HostRoot:
+      return 'HostRoot'
+    case HostComponent:
+      return 'HostHostComponentRoot'
+    case HostText:
+      return 'HostText'
+    default:
+      return tag
+  }
+};
+
+const getFlags = (flags: number) => {
+  if (flags === Placement) return '插入'
+  if (flags === Update) return '更新'
+  return flags
 }

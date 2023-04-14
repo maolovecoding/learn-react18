@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-const element = <h1>
+const element = <h1 id="container">
   hello
   <span style={{color: 'red'}}>world</span>
 </h1>
