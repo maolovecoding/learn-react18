@@ -1,7 +1,7 @@
 import { appendChild, insertBefore } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 import { FiberNode } from "./ReactFiber";
 import { MutationMask, Placement } from "./ReactFiberTags";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import { FunctionComponent, HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 import { FiberRootNode } from "./createFiberRoot";
 
 /**
@@ -12,6 +12,7 @@ import { FiberRootNode } from "./createFiberRoot";
  */
 export const commitMutaionEffectsOnFiber = (finishedWork: FiberNode, root: FiberRootNode) => {
   switch (finishedWork.tag) {
+  case FunctionComponent:
   case HostRoot:
   case HostComponent:
   case HostText:

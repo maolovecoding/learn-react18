@@ -1,10 +1,12 @@
 import logger, { indent } from "shared/logger";
 import { FiberNode } from "./ReactFiber";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import { HostComponent, HostRoot, HostText, IndeterminateComponent } from "./ReactWorkTags";
 import { processUpdateQueue } from "./ReactFiberClassUpdateQueue";
 import { IVNode, IVNodeProps } from "react/src/jsx/ReactJSXElement";
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
 import { shouldSetTextContent } from "react-dom-bindings/src/client/ReactDOMHostConfig";
+import { FunctionComponent } from "./ReactWorkTags";
+import { renderWithHooks } from "./ReactFiberHooks";
 /**
  * 
  * @param current 老fiber
@@ -31,11 +33,13 @@ export const beginWork = (current: FiberNode, workInProgress: FiberNode) : Fiber
   logger(' '.repeat(indent.number) + 'beginWork', workInProgress);
   indent.number += 2
   switch (workInProgress.tag) {
-    case HostRoot:
+    case IndeterminateComponent: // 函数 类组件
+      return mountIndeterminateComponent(current, workInProgress, workInProgress.type)
+    case HostRoot: // 根
       return updateHostRoot(current, workInProgress);
-    case HostComponent:
+    case HostComponent: // 原生 span div
       return updateHostComponent(current, workInProgress);
-    case HostText:
+    case HostText: // 文本
       return null;
     default:
       return null;
@@ -73,3 +77,22 @@ const updateHostComponent = (current: FiberNode, workInProgress: FiberNode) : Fi
   reconcileChildren(current, workInProgress, nextChildren)
   return workInProgress.child
 }
+/**
+ * 
+ * @param current 页面渲染的fiber
+ * @param workInProgress 构建中的fiber
+ * @param Component 类组件 函数组件 type肯定是一个函数
+ */
+const mountIndeterminateComponent = (current: FiberNode, workInProgress: FiberNode, Component: IFunctionComponent): FiberNode => {
+  const props = workInProgress.pendingProps
+  // const renderChildrenIVNode = Component(props); // 是函数组件 直接调用 传入props
+  const renderChildrenIVNode = renderWithHooks(current, workInProgress, Component, props); // 是函数组件 直接调用 传入props
+  workInProgress.tag = FunctionComponent; // 确定是函数组件
+  reconcileChildren(current, workInProgress, renderChildrenIVNode)
+  return workInProgress.child
+};
+
+export type IIndeterminateComponent = IFunctionComponent | IClassComponent;
+
+export type IFunctionComponent = (...args: any[]) => IVNode
+export type IClassComponent = new (...args: any[]) => any
