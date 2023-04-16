@@ -1,0 +1,15 @@
+{
+  "configurations": [
+  {
+    "name": "Launch Chrome",
+    "request": "launch",
+    "type": "chrome",
+    "url": "http://localhost:5173",
+    "webRoot": "${workspaceFolder}/hot", // vite项目需要是一个不存在的文件夹 存放热更新文件
+    "userDataDir": false,
+    "runtimeArgs": [
+      "--auto-open-devtools-for-tabs"
+    ]
+  }
+  ]
+}

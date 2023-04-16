@@ -20,7 +20,7 @@ export const completeWork = (current: FiberNode, workInProgress: FiberNode) => {
       // 原生节点 span div
       // 创建真实dom节点 
       const { type } = workInProgress
-      const instance = createInstance(type, newProps)
+      const instance = createInstance(type, newProps, workInProgress)
       // 把所有的儿子都添加到自己身上
       appendAllChildren(instance, workInProgress)
       workInProgress.stateNode = instance

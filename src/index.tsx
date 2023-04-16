@@ -11,9 +11,14 @@ const root = createRoot(document.getElementById('root'))
 
 function FunctionComponent() {
   return (
-    <h1 id="container">
+    <h1 id="container" onClick={() => console.log('父亲冒泡onClick')}
+    onClickCapture={() => console.log('父亲捕获onClickCapture')}>
       hello
-      <span style={{color: 'red'}}>world</span>
+      <span style={{ color: 'red' }}
+        onClick={() => console.log('儿子冒泡onClick')}
+        onClickCapture={() => console.log('儿子捕获onClickCapture')}>
+        world
+      </span>
     </h1>
   )
 }

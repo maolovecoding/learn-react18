@@ -2,11 +2,14 @@
  * @Author: 毛毛 
  * @Date: 2023-04-11 22:23:44 
  * @Last Modified by: 毛毛
- * @Last Modified time: 2023-04-11 22:54:27
+ * @Last Modified time: 2023-04-16 15:38:27
  * @description dom操作
  */
 
+import { FiberNode } from "react-reconciler/src/ReactFiber";
 import { setInitialProperties } from "./ReactDOMComponent";
+import { precacheFiberNode, updateFiberProps } from "./ReactDOMComponentTree";
+
 
 /**
  * 是否直接设置文本内容 只有一个孩子 也就是 children = 'xx'
@@ -27,11 +30,14 @@ export const createTextInstance = (content: string) => {
  * 创建真实DOM
  * @param type 
  * @param props 
+ * @param internalInstanceHandle 真实dom对应的fiber
  * @returns 
  */
-export const createInstance = (type: string, props) => {
-  const domEle = document.createElement(type)
-  return domEle
+export const createInstance = (type: string, props, internalInstanceHandle: FiberNode) => {
+  const domElement = document.createElement(type)
+  precacheFiberNode(internalInstanceHandle, domElement); // 设置原生dom和fiber的关联 方便查找
+  updateFiberProps(domElement, props) // dom节点记录props
+  return domElement
 }
 
 /**
