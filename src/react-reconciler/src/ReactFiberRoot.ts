@@ -1,10 +1,11 @@
+import { Container } from "react-dom/client";
 import { createHostRootFiber } from "./ReactFiber";
 import { initialUpdateQueue } from "./ReactFiberClassUpdate";
 /**
  * 创建fiber root
  * @param containerInfo 容器信息
  */
-export const createFiberRoot = (containerInfo) => {
+export const createFiberRoot = (containerInfo: Container) => {
   const root = new FiberRootNode(containerInfo);
   // HostRoot 指的就是根节点 比如 div#root
   // uninitializedFiber => 未初始化的 fiber
@@ -25,5 +26,5 @@ class FiberRootNode {
    * 当前的 fiber树
    */
   public current;
-  constructor(public containerInfo) {}
+  constructor(public containerInfo: Container) {}
 }
