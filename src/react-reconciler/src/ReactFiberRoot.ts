@@ -1,5 +1,5 @@
 import { Container } from "react-dom/client";
-import { createHostRootFiber } from "./ReactFiber";
+import { createHostRootFiber, FiberNode } from "./ReactFiber";
 import { initialUpdateQueue } from "./ReactFiberClassUpdate";
 /**
  * 创建fiber root
@@ -21,10 +21,10 @@ export const createFiberRoot = (containerInfo: Container) => {
  * 根 fiber root 本质就是持有真实的DOM节点  作为整个项目的根
  */
 
-class FiberRootNode {
+export class FiberRootNode {
   /**
    * 当前的 fiber树
    */
-  public current;
+  public current: FiberNode;
   constructor(public containerInfo: Container) {}
 }

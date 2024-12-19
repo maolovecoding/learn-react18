@@ -73,6 +73,13 @@ export const createHostRootFiber = () => {
 
 export interface IUpdateQueue {
   shared: {
-    pending: null;
+    pending: null | IUpdate;
   };
+}
+
+export interface IUpdate {
+  payload: {
+    element: null;
+  };
+  next: IUpdate | null;
 }

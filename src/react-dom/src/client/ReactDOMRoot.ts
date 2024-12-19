@@ -1,4 +1,5 @@
-import { createContainer } from "react-reconciler/src/ReactFiberReconciler";
+import { createContainer, updateContainer } from "react-reconciler/src/ReactFiberReconciler";
+import { FiberRootNode } from "react-reconciler/src/ReactFiberRoot";
 
 /**
  *
@@ -11,8 +12,15 @@ export const createRoot = (container: Container) => {
 };
 
 class ReactDOMRoot {
-  constructor(private _internalRoot) {}
-  render() {}
+  constructor(private _internalRoot: FiberRootNode) {}
+  /**
+   * 将虚拟DOM渲染到容器中
+   * @param children 虚拟DOM
+   */
+  render(children) {
+    const root = this._internalRoot
+    updateContainer(children, root)
+  }
 }
 
 export type Container = Element | DocumentFragment;

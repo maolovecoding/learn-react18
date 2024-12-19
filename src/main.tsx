@@ -8,5 +8,6 @@ const element = (
 console.log(element);
 
 const root = createRoot(document.getElementById("root"));
-console.log(root)
-// root.render(element);
+console.log(root);
+// 把虚拟DOM渲染到容器
+root.render(element);
