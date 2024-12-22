@@ -6,10 +6,10 @@ export const HostRoot = 3;
 
 
 /**
- * 原生组件
+ * 原生节点
  */
 export const HostComponent = 5 
 /**
- * 文本
+ * 纯文本
  */
 export const HostText = 6

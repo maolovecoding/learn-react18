@@ -1,4 +1,5 @@
 import { FiberNode, IUpdate } from "./ReactFiber";
+import { markUpdateLaneFromFiberToRoot } from "./ReactFiberConcurrentUpdates";
 
 /**
  * 初始化更新队列
@@ -42,4 +43,6 @@ export const enqueueUpdate = (fiber: FiberNode, update: IUpdate) => {
     pending.next = update;
   }
   updateQueue.shared.pending = update;
+  // 返回根节点 从当前的fiber冒泡一直找到根节点 有更新赛道优先级 32个
+  return markUpdateLaneFromFiberToRoot(fiber);
 };

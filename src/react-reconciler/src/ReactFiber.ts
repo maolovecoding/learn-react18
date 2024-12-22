@@ -1,5 +1,10 @@
 import { NoFlags } from "./ReactFiberFlags";
+import { FiberRootNode } from "./ReactFiberRoot";
 import { HostRoot } from "./ReactWorkTags";
+import * as ReactWorkTags from "./ReactWorkTags";
+
+export type ReactWorkTagsType = (typeof ReactWorkTags)[keyof typeof ReactWorkTags]
+
 /**
  * fiber 节点
  */
@@ -11,14 +16,18 @@ export class FiberNode {
    * @param pendingProps 新属性 等待处理 或者生效的属性
    * @param key 唯一标识 diff使用
    */
-  constructor(private tag: number, private pendingProps, private key) {
+  constructor(
+    public tag: ReactWorkTagsType,
+    public pendingProps,
+    public key
+  ) {
     // fiber 通过虚拟DOM节点创建 虚拟DOM提供了 pendingProps来创建fiber节点的属性
   }
   /**
    * 对应的真实DOM节点
    * @description 每个虚拟DOM => Fiber节点 => 真实DOM
    */
-  public stateNode = null;
+  public stateNode: FiberRootNode | null = null;
   /**
    * fiber类型 来源虚拟DOM节点的type eg: div span
    */
@@ -26,15 +35,15 @@ export class FiberNode {
   /**
    * 父节点
    */
-  public return = null;
+  public return: FiberNode | null = null;
   /**
    * 第一个子节点
    */
-  public child = null;
+  public child: FiberNode | null = null;
   /**
    * 指向下一个兄弟节点
    */
-  public sibling = null;
+  public sibling: FiberNode | null = null;
   /**
    * 已经生效的属性
    */
@@ -60,15 +69,53 @@ export class FiberNode {
   /**
    * 替身 fiber双缓冲机制
    */
-  public alternate = null;
+  public alternate: FiberNode | null = null;
+  /**
+   * 索引
+   */
+  public index: number | null = null;
 }
 
-export const createFiber = (tag: number, pendingProps, key) => {
+export const createFiber = (tag: ReactWorkTagsType, pendingProps, key) => {
   return new FiberNode(tag, pendingProps, key);
 };
 
 export const createHostRootFiber = () => {
   return createFiber(HostRoot, null, null);
+};
+
+/**
+ * 根据老fiber和新属性创建新fiber
+ * @param fiber
+ */
+export const createWorkInProgress = (
+  current: FiberNode,
+  pendingProps = null
+) => {
+  let workInProgress = current.alternate; // fiber的替身
+  if (workInProgress === null) {
+    // 第一次 是 null
+    workInProgress = createFiber(current.tag, pendingProps, current.key);
+    // 对应的真实DOM
+    workInProgress.stateNode = current.stateNode;
+    // 双向指针
+    workInProgress.alternate = current;
+    current.alternate = workInProgress;
+  } else {
+    // 已有老fiber 复用fiber
+    workInProgress.pendingProps = pendingProps;
+    workInProgress.type = current.type;
+    workInProgress.flags = NoFlags;
+    workInProgress.subtreeFlags = NoFlags;
+  }
+  // 更新其他属性
+  workInProgress.child = current.child;
+  workInProgress.memoizedProps = current.memoizedProps;
+  workInProgress.memoizedState = current.memoizedState;
+  workInProgress.updateQueue = current.updateQueue;
+  workInProgress.sibling = current.sibling;
+  workInProgress.index = current.index;
+  return workInProgress;
 };
 
 export interface IUpdateQueue {
