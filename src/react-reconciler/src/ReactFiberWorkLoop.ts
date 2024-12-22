@@ -45,7 +45,7 @@ const renderRootSync = (root: FiberRootNode) => {
  * @param root
  */
 const prepareFreshStack = (root: FiberRootNode) => {
-  workInProgress = createWorkInProgress(root.current);
+  workInProgress = createWorkInProgress(root.current, null);
 };
 /**
  * 同步工作循环
@@ -66,7 +66,7 @@ const performUnitOfWork = (unitOfWork: FiberNode) => {
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
   if (next === null) {
     // 没有子节点 表示当前fiber已经构建完成
-    // completeUnitOfWork(unitOfWork);
+    // completeUnitOfWork(unitOfWork); // 自己的子节点构建完毕 则自己构建完毕
     workInProgress = null;
   } else {
     // 有子节点 让子节点成为下一个工作单元

@@ -64,3 +64,5 @@ const ReactElement = (type, key, ref, props) => {
     props,
   };
 };
+
+export type ReactElementType = ReturnType<typeof ReactElement>;

@@ -1,9 +1,15 @@
+import { ReactElementType } from "react/type";
 import { NoFlags } from "./ReactFiberFlags";
 import { FiberRootNode } from "./ReactFiberRoot";
-import { HostRoot } from "./ReactWorkTags";
+import {
+  HostRoot,
+  IndeterminateComponent,
+  HostComponent,
+} from "./ReactWorkTags";
 import * as ReactWorkTags from "./ReactWorkTags";
 
-export type ReactWorkTagsType = (typeof ReactWorkTags)[keyof typeof ReactWorkTags]
+export type ReactWorkTagsType =
+  (typeof ReactWorkTags)[keyof typeof ReactWorkTags];
 
 /**
  * fiber 节点
@@ -16,11 +22,7 @@ export class FiberNode {
    * @param pendingProps 新属性 等待处理 或者生效的属性
    * @param key 唯一标识 diff使用
    */
-  constructor(
-    public tag: ReactWorkTagsType,
-    public pendingProps,
-    public key
-  ) {
+  constructor(public tag: ReactWorkTagsType, public pendingProps, public key) {
     // fiber 通过虚拟DOM节点创建 虚拟DOM提供了 pendingProps来创建fiber节点的属性
   }
   /**
@@ -88,10 +90,7 @@ export const createHostRootFiber = () => {
  * 根据老fiber和新属性创建新fiber
  * @param fiber
  */
-export const createWorkInProgress = (
-  current: FiberNode,
-  pendingProps = null
-) => {
+export const createWorkInProgress = (current: FiberNode, pendingProps) => {
   let workInProgress = current.alternate; // fiber的替身
   if (workInProgress === null) {
     // 第一次 是 null
@@ -118,6 +117,26 @@ export const createWorkInProgress = (
   return workInProgress;
 };
 
+/**
+ * 根据虚拟dom创建fiber节点
+ * @param element
+ */
+export const createFiberFromElement = (element: ReactElementType) => {
+  const { type, key, props: pendingProps } = element;
+  return createFiberFromTypeAndProps(type, key, pendingProps);
+};
+
+const createFiberFromTypeAndProps = (type, key, pendingProps) => {
+  let tag: ReactWorkTagsType = IndeterminateComponent; // 不确定的组件类型
+  // 如果type是字符串 原生组件类型 h1 span div
+  if (typeof type === "string") {
+    tag = HostComponent;
+  }
+  const fiber = createFiber(tag, pendingProps, key);
+  fiber.type = type;
+  return fiber;
+};
+
 export interface IUpdateQueue {
   shared: {
     pending: null | IUpdate;
@@ -129,4 +148,5 @@ export interface IUpdate {
     element: null;
   };
   next: IUpdate | null;
+  tag: number; //更新的类型
 }
