@@ -13,6 +13,7 @@ export default defineConfig({
       "react-reconciler": path.posix.resolve("src/react-reconciler"),
       shared: path.posix.resolve("src/shared"),
       scheduler: path.posix.resolve("src/scheduler"),
+      'react-dom-bindings': path.posix.resolve("src/react-dom-bindings"),
     },
   },
 });

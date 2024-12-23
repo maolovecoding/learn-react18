@@ -75,7 +75,7 @@ export class FiberNode {
   /**
    * 索引
    */
-  public index: number | null = null;
+  public index: number = 0;
 }
 
 export const createFiber = (tag: ReactWorkTagsType, pendingProps, key) => {
@@ -124,6 +124,15 @@ export const createWorkInProgress = (current: FiberNode, pendingProps) => {
 export const createFiberFromElement = (element: ReactElementType) => {
   const { type, key, props: pendingProps } = element;
   return createFiberFromTypeAndProps(type, key, pendingProps);
+};
+/**
+ * 根据文本创建fiber
+ * @param content
+ * @returns
+ */
+export const createFiberFromText = (content: string): FiberNode => {
+  const fiber = createFiber(ReactWorkTags.HostText, content, null);
+  return fiber;
 };
 
 const createFiberFromTypeAndProps = (type, key, pendingProps) => {

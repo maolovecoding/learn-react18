@@ -2,6 +2,7 @@ import { scheduleCallback } from "scheduler/index";
 import { FiberRootNode } from "./ReactFiberRoot";
 import { createWorkInProgress, FiberNode } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
+import { completeWork } from "./ReactFiberCompleteWork";
 
 /**
  * 一个 fiber节点
@@ -66,10 +67,32 @@ const performUnitOfWork = (unitOfWork: FiberNode) => {
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
   if (next === null) {
     // 没有子节点 表示当前fiber已经构建完成
-    // completeUnitOfWork(unitOfWork); // 自己的子节点构建完毕 则自己构建完毕
-    workInProgress = null;
+    completeUnitOfWork(unitOfWork); // 自己的子节点构建完毕 则自己构建完毕
   } else {
     // 有子节点 让子节点成为下一个工作单元
     workInProgress = next;
   }
+};
+
+/**
+ * 完成fiber构建
+ * @param unitOfWork
+ */
+const completeUnitOfWork = (unitOfWork: FiberNode) => {
+  let completedWork = unitOfWork;
+  do {
+    const current = completedWork.alternate; // 拿到替身fiber 老fiber
+    const returnFiber = completedWork.return; // 返回的父fiber
+    completeWork(current, completedWork); // 执行此fiber的完成工作 如果是原生组件 则是创建真实DOM节点
+    // 处理自己的弟弟 兄弟节点
+    const siblingFiber = completedWork.sibling;
+    // 如果有弟弟 构建对应的fiber链表
+    if (siblingFiber !== null) {
+      workInProgress = siblingFiber;
+      return;
+    }
+    // 没有弟弟 则是父fiber的最后一个子节点 父fiber的所有子fiber都构建完成
+    completedWork = returnFiber; // 回到父 fiber
+    workInProgress = completedWork;
+  } while (completedWork !== null);
 };

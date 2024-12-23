@@ -7,7 +7,7 @@ for (const tag in ReactWorkTags) {
   ReactWorkTagsMap.set(ReactWorkTags[tag], tag as keyof typeof ReactWorkTags);
 }
 
-const logger = (prefix, workInProgress: FiberNode) => {
+const logger = (prefix: string, workInProgress: FiberNode) => {
   const tagValue = workInProgress.tag;
   const tagName = ReactWorkTagsMap.get(tagValue);
   let str = `${tagName}`;
@@ -20,3 +20,7 @@ const logger = (prefix, workInProgress: FiberNode) => {
 };
 
 export default logger;
+
+export const indent = {
+  number: 0,
+};

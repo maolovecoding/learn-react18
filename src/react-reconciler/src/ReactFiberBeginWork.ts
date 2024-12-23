@@ -1,9 +1,10 @@
-import logger from "shared/logger";
+import logger, { indent } from "shared/logger";
 import { FiberNode } from "./ReactFiber";
 import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 import { progressUpdateQueue } from "./ReactFiberClassUpdate";
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
 import { ReactElementType } from "react/type";
+import { shouldSetTextContent } from "react-dom-bindings/src/ReactDOMHostConfig";
 
 /**
  * 更新根节点
@@ -24,12 +25,22 @@ const updateHostRoot = (current: FiberNode, workInProgress: FiberNode) => {
 };
 
 /**
- * 更新原生节点
+ * 更新原生节点 构建原生组件的子fiber链表
  * @param current
  * @param workInProgress
  */
 const updateHostComponent = (current: FiberNode, workInProgress: FiberNode) => {
-  return null;
+  const { type } = workInProgress;
+  const nextProps = workInProgress.pendingProps; // 虚拟DOM的props属性
+  let nextChildren = nextProps.children; // 新子节点
+  // isDirectTextChild 判断当前虚拟DOM是否是直接的单个子节点 文本节点
+  const isDirectTextChild = shouldSetTextContent(type, nextProps);
+  if (isDirectTextChild) {
+    nextChildren = null;
+  }
+  // 根据新的虚拟DOM生成子fiber链表
+  reconcileChildren(current, workInProgress, nextChildren); // 协调子节点 dom diff
+  return workInProgress.child;
 };
 
 /**
@@ -40,7 +51,8 @@ const updateHostComponent = (current: FiberNode, workInProgress: FiberNode) => {
  * @param workInProgress 新fiber
  */
 export const beginWork = (current: FiberNode, workInProgress: FiberNode) => {
-  logger("beginWork", workInProgress);
+  logger(" ".repeat(indent.number) + "beginWork", workInProgress);
+  indent.number += 2;
   switch (workInProgress.tag) {
     case HostRoot:
       return updateHostRoot(current, workInProgress);
@@ -67,6 +79,7 @@ const reconcileChildren = (
 ) => {
   if (current === null) {
     // 新fiber没对应的老fiber 说明此fiber是新创建的
+    // 如果父fiber是新创建的，则子fiber肯定也都是新创建的
     workInProgress.child = mountChildFibers(workInProgress, null, nextChildren); // 挂载子fiber链表
   } else {
     // 有 老fiber 做 dom-diff 老的fiber链表和新的虚拟DOM进行比较 进行最小化更新

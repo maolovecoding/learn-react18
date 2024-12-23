@@ -30,7 +30,8 @@
       "react-dom/*": ["src/react-dom/*"],
       "react-reconciler/*": ["src/react-reconciler/*"],
       "shared/*": ["src/shared/*"],
-      "scheduler/*": ["src/scheduler/*"]
+      "scheduler/*": ["src/scheduler/*"],
+      "react-dom-bindings/*": ["src/react-dom-bindings/*"]
     }
   },
   "include": ["src"]
