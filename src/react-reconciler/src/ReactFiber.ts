@@ -1,6 +1,5 @@
 import { ReactElementType } from "react/type";
 import { NoFlags } from "./ReactFiberFlags";
-import { FiberRootNode } from "./ReactFiberRoot";
 import {
   HostRoot,
   IndeterminateComponent,
@@ -27,9 +26,10 @@ export class FiberNode {
   }
   /**
    * 对应的真实DOM节点
+   * 根节点 此类型是 FiberRootNode
    * @description 每个虚拟DOM => Fiber节点 => 真实DOM
    */
-  public stateNode: FiberRootNode | null = null;
+  public stateNode = null;
   /**
    * fiber类型 来源虚拟DOM节点的type eg: div span
    */

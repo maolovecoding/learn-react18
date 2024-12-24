@@ -4,7 +4,7 @@ import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 import { progressUpdateQueue } from "./ReactFiberClassUpdate";
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
 import { ReactElementType } from "react/type";
-import { shouldSetTextContent } from "react-dom-bindings/src/ReactDOMHostConfig";
+import { shouldSetTextContent } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 
 /**
  * 更新根节点
