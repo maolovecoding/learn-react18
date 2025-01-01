@@ -1,4 +1,8 @@
-import { createContainer, updateContainer } from "react-reconciler/src/ReactFiberReconciler";
+import { listenToAllSupportedEvents } from "react-dom-bindings/src/events/DOMPluginEventSystem";
+import {
+  createContainer,
+  updateContainer,
+} from "react-reconciler/src/ReactFiberReconciler";
 import { FiberRootNode } from "react-reconciler/src/ReactFiberRoot";
 
 /**
@@ -8,6 +12,8 @@ import { FiberRootNode } from "react-reconciler/src/ReactFiberRoot";
  */
 export const createRoot = (container: Container) => {
   const root = createContainer(container);
+  // 事件代理到根容器
+  listenToAllSupportedEvents(container); // 监听所有支持的事件
   return new ReactDOMRoot(root);
 };
 
@@ -18,8 +24,8 @@ class ReactDOMRoot {
    * @param children 虚拟DOM
    */
   render(children) {
-    const root = this._internalRoot
-    updateContainer(children, root)
+    const root = this._internalRoot;
+    updateContainer(children, root);
   }
 }
 
