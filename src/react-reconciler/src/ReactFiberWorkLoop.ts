@@ -3,8 +3,9 @@ import { FiberRootNode } from "./ReactFiberRoot";
 import { createWorkInProgress, FiberNode } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
 import { completeWork } from "./ReactFiberCompleteWork";
-import { MutationMask, NoFlags } from "./ReactFiberFlags";
+import { MutationMask, NoFlags, Placement, Update } from "./ReactFiberFlags";
 import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
+import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 
 /**
  * 一个 fiber节点
@@ -41,17 +42,18 @@ function performConcurrentWorkOnRoot(root: FiberRootNode) {
 }
 /**
  * 提交 更新dom
- * @param root 
+ * @param root
  */
 const commitRoot = (root: FiberRootNode) => {
   const { finishedWork } = root;
+  printFinishedWork(finishedWork);
   // 子节点的副作用
   const subtreeHasEffects =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
   const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
   // 看子树有没有副作用 根节点有没有副作用
   if (subtreeHasEffects || rootHasEffect) {
-    commitMutationEffectsOnFiber(finishedWork, root)
+    commitMutationEffectsOnFiber(finishedWork, root);
   }
   // 更新当前的fiber树
   root.current = finishedWork;
@@ -118,4 +120,46 @@ const completeUnitOfWork = (unitOfWork: FiberNode) => {
     completedWork = returnFiber; // 回到父 fiber
     workInProgress = completedWork;
   } while (completedWork !== null);
+};
+
+/**
+ * 打印完成的工作fiber
+ * @param fiber
+ */
+const printFinishedWork = (fiber: FiberNode) => {
+  let child = fiber.child;
+  while (child !== null) {
+    printFinishedWork(child);
+    child = child.sibling;
+  }
+  if (fiber.flags !== 0) {
+    console.log(
+      getFlags(fiber.flags),
+      getTag(fiber.tag),
+      fiber.type,
+      fiber.memoizedProps
+    );
+  }
+};
+
+const getFlags = (flags) => {
+  if (flags === Placement) {
+    return "插入";
+  }
+  if (flags === Update) {
+    return "更新";
+  }
+};
+
+const getTag = (tag) => {
+  switch (tag) {
+    case HostRoot:
+      return "HostRoot";
+    case HostComponent:
+      return "HostComponent";
+    case HostText:
+      return "HostText";
+    default:
+      return tag;
+  }
 };
