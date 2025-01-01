@@ -68,7 +68,7 @@ export const progressUpdateQueue = (workInProgress: FiberNode) => {
     queue.shared.pending = null;
     // 获取更新队列中的最后一个更新  update = { payload: element }
     const lastPendingUpdate = pendingQueue;
-    const firstPendingUpdate = pendingQueue.next; // 第一个等待生效的更新
+    const firstPendingUpdate = lastPendingUpdate.next; // 第一个等待生效的更新
     pendingQueue.next = null; // 断开环形链表 变成单链表
     let newState = workInProgress.memoizedState; // 获取老状态(lastState => computed => newState)
     let update = firstPendingUpdate; // 第一个更新

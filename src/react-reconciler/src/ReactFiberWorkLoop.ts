@@ -3,6 +3,8 @@ import { FiberRootNode } from "./ReactFiberRoot";
 import { createWorkInProgress, FiberNode } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
 import { completeWork } from "./ReactFiberCompleteWork";
+import { MutationMask, NoFlags } from "./ReactFiberFlags";
+import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
 
 /**
  * 一个 fiber节点
@@ -32,7 +34,28 @@ const ensureRootIsScheduled = (root: FiberRootNode) => {
 function performConcurrentWorkOnRoot(root: FiberRootNode) {
   // 同步渲染根节点 初次渲染的时候  都是同步
   renderRootSync(root);
+  // 提交阶段，执行副作用，修改真实DOM
+  const finishedWork = root.current.alternate;
+  root.finishedWork = finishedWork;
+  commitRoot(root);
 }
+/**
+ * 提交 更新dom
+ * @param root 
+ */
+const commitRoot = (root: FiberRootNode) => {
+  const { finishedWork } = root;
+  // 子节点的副作用
+  const subtreeHasEffects =
+    (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+  const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
+  // 看子树有没有副作用 根节点有没有副作用
+  if (subtreeHasEffects || rootHasEffect) {
+    commitMutationEffectsOnFiber(finishedWork, root)
+  }
+  // 更新当前的fiber树
+  root.current = finishedWork;
+};
 
 const renderRootSync = (root: FiberRootNode) => {
   // 开始构建 fiber树

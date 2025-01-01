@@ -11,6 +11,10 @@ export const Placement = 0b10;
  */
 export const Update = 0b100;
 /**
- * 删除操作
+ * 子节点删除操作
  */
-export const Deletion = 0b1000;
+export const ChildDeletion = 0b1000;
+/**
+ * 修改操作掩码
+ */
+export const MutationMask = Placement | Update;

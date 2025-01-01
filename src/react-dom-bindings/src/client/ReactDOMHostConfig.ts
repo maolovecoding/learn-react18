@@ -1,5 +1,5 @@
 import { FiberNode } from "react-reconciler/src/ReactFiber";
-import { setInitialProperties } from './ReactDOMComponent'
+import { setInitialProperties } from "./ReactDOMComponent";
 
 /**
  * 判断当前虚拟DOM是否是直接的单个子节点 文本节点
@@ -48,4 +48,21 @@ export const finalizeInitialChildren = (
   props
 ) => {
   setInitialProperties(domElement, type, props);
+};
+/**
+ * 父节点追加只节点
+ * @param parentInstance
+ * @param child
+ */
+export const appendChild = (parentInstance, child) => {
+  parentInstance.appendChild(child);
+};
+/**
+ * 再 beforeChild 子节点之前插入 child节点
+ * @param parentInstance
+ * @param child
+ * @param beforeChild
+ */
+export const insertBefore = (parentInstance, child, beforeChild) => {
+  parentInstance.insertBefore(child, beforeChild);
 };

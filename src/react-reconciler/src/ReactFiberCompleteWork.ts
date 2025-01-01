@@ -1,13 +1,12 @@
 import logger, { indent } from "shared/logger";
 import { FiberNode } from "./ReactFiber";
-import { HostComponent, HostText } from "./ReactWorkTags";
+import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 import {
   createTextInstance,
   createInstance,
   appendInitialChild,
   finalizeInitialChildren,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
-import { NoFlags } from "./ReactFiberFlags";
 
 /**
  * 把当前完成的fiber所有的子节点对应的真实DOM都挂载到自己父parent真实DOM上
@@ -51,6 +50,10 @@ export const completeWork = (current: FiberNode, completedWork: FiberNode) => {
   logger(" ".repeat(indent.number) + "completeWork", completedWork);
   const newProps = completedWork.pendingProps;
   switch (completedWork.tag) {
+    case HostRoot:
+      // 根fiber有跟节点 具有真实dom
+      bubbleProperties(completedWork); // 冒泡属性
+      break;
     case HostComponent: {
       // TODO 现在只是处理创建或者说挂载新节点的逻辑 后面会区分是初次挂载还是更新
       // 原生节点 div span
@@ -81,14 +84,13 @@ export const completeWork = (current: FiberNode, completedWork: FiberNode) => {
  * @param completedWork
  */
 const bubbleProperties = (completedWork: FiberNode) => {
-  let subTreeFlags = NoFlags;
-  let child = completedWork.child;
+  let { subtreeFlags, child } = completedWork;
   while (child !== null) {
     // 收集子fiber的所有副作用到自己身上
-    subTreeFlags |= child.subtreeFlags;
-    subTreeFlags |= child.flags;
+    subtreeFlags |= child.subtreeFlags;
+    subtreeFlags |= child.flags;
     child = child.sibling;
   }
   // 将当前fiber下的所有fiber树上的副作用到自己身上
-  completedWork.subtreeFlags = subTreeFlags;
+  completedWork.subtreeFlags = subtreeFlags;
 };

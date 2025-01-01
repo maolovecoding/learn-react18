@@ -26,5 +26,9 @@ export class FiberRootNode {
    * 当前的 fiber树
    */
   public current: FiberNode;
+  /**
+   * 完成的fiber树
+   */
+  public finishedWork: FiberNode;
   constructor(public containerInfo: Container) {}
 }
