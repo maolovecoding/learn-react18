@@ -1,10 +1,17 @@
 import logger, { indent } from "shared/logger";
 import { FiberNode } from "./ReactFiber";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+  IndeterminateComponent,
+} from "./ReactWorkTags";
 import { progressUpdateQueue } from "./ReactFiberClassUpdate";
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
 import { ReactElementType } from "react/type";
 import { shouldSetTextContent } from "react-dom-bindings/src/client/ReactDOMHostConfig";
+import { renderWithHooks } from "./ReactFiberHooks";
 
 /**
  * 更新根节点
@@ -44,6 +51,27 @@ const updateHostComponent = (current: FiberNode, workInProgress: FiberNode) => {
 };
 
 /**
+ * 挂载待定的组件
+ * 现在认为都是函数式组件
+ * @param current 老fiber
+ * @param workInProgress 新fiber
+ * @param Component 组件类型 也就是组件的定义
+ */
+const mountIndeterminateComponent = (
+  current: FiberNode,
+  workInProgress: FiberNode,
+  Component
+) => {
+  const props = workInProgress.pendingProps;
+  // 执行函数式组件
+  // const element = Component(props); // 得到虚拟dom
+  const element = renderWithHooks(current, workInProgress, Component, props);
+  workInProgress.tag = FunctionComponent; // 标记为函数式组件
+  reconcileChildren(current, workInProgress, element); // 协调子节点
+  return workInProgress.child;
+};
+
+/**
  * 根据虚拟DOM构建新的fiber链表
  * child sibling
  * 先找下一个节点，先大孩子，没有则找自己的兄弟节点 再没有返回父亲节点找对应父亲的兄弟节点
@@ -54,6 +82,14 @@ export const beginWork = (current: FiberNode, workInProgress: FiberNode) => {
   logger(" ".repeat(indent.number) + "beginWork", workInProgress);
   indent.number += 2;
   switch (workInProgress.tag) {
+    // 待定的组件 class or function
+    case IndeterminateComponent:
+      // 挂载组件
+      return mountIndeterminateComponent(
+        current,
+        workInProgress,
+        workInProgress.type
+      );
     case HostRoot:
       return updateHostRoot(current, workInProgress);
     case HostComponent:

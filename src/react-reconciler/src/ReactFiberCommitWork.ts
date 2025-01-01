@@ -5,7 +5,7 @@ import {
 import { FiberNode } from "./ReactFiber";
 import { MutationMask, Placement } from "./ReactFiberFlags";
 import { FiberRootNode } from "./ReactFiberRoot";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import { FunctionComponent, HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 
 /**
  * 遍历fiber 执行fiber上的副作用
@@ -17,6 +17,7 @@ export const commitMutationEffectsOnFiber = (
   root: FiberRootNode
 ) => {
   switch (finishedWork.tag) {
+    case FunctionComponent:
     case HostRoot:
     case HostComponent:
     case HostText: {
