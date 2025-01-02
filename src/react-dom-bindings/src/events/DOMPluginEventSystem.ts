@@ -124,7 +124,50 @@ const dispatchEventForPlugins = (
     eventSystemFlags,
     targetContainer
   );
-  console.log("dispatchQueue", dispatchQueue);
+  // 处理派发队列
+  processDispatchQueue(dispatchQueue, eventSystemFlags);
+};
+
+const processDispatchQueue = (dispatchQueue, eventSystemFlags) => {
+  const inCapturePhase = (eventSystemFlags & IS_CAPTURE_PHASE) !== 0; // 是否捕获阶段
+  for (let i = 0; i < dispatchQueue.length; i++) {
+    const { event, listeners } = dispatchQueue[i];
+    // 处理事件队列的每个条目
+    processDispatchQueueItemsInOrder(event, listeners, inCapturePhase);
+  }
+};
+const processDispatchQueueItemsInOrder = (
+  event,
+  dispatchListeners,
+  inCapturePhase
+) => {
+  if (inCapturePhase) {
+    // 捕获阶段
+    for (let i = dispatchListeners.length - 1; i >= 0; i--) {
+      const { listener, currentTarget } = dispatchListeners[i];
+      // 阻止继续传播了
+      if (event.isPropagationStopped()) return;
+      executeDispatch(event, listener, currentTarget);
+    }
+  } else {
+    // 冒泡阶段
+    for (let i = 0; i < dispatchListeners.length; i++) {
+      const { listener, currentTarget } = dispatchListeners[i];
+      if (event.isPropagationStopped()) return;
+      executeDispatch(event, listener, currentTarget);
+    }
+  }
+};
+/**
+ * 执行事件回调函数
+ * @param listener
+ * @param event
+ * @param currentTarget
+ */
+const executeDispatch = (event, listener, currentTarget) => {
+  // 合成事件的 currentTarget 属性 是不断变化的
+  event.currentTarget = currentTarget;
+  listener(event);
 };
 
 /**
