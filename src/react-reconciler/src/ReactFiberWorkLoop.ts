@@ -6,11 +6,18 @@ import { completeWork } from "./ReactFiberCompleteWork";
 import { MutationMask, NoFlags, Placement, Update } from "./ReactFiberFlags";
 import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
 import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import { finishQueueingConcurrentUpdates } from "./ReactFiberConcurrentUpdates";
 
 /**
  * 一个 fiber节点
  */
 let workInProgress: FiberNode | null = null;
+
+/**
+ * 当前正在调度的根节点
+ * 实现批量更新
+ */
+let workInProgressRoot: FiberRootNode = null;
 
 /**
  * 在fiber上调度更新
@@ -23,6 +30,8 @@ export const scheduleUpdateOnFiber = (root: FiberRootNode) => {
 };
 
 const ensureRootIsScheduled = (root: FiberRootNode) => {
+  if (workInProgressRoot !== null) return;
+  workInProgressRoot = root; // 实现批量更新
   // 告诉浏览器 执行 root 上的 并发更新工作 performConcurrentWorkOnRoot
   scheduleCallback(performConcurrentWorkOnRoot.bind(null, root));
 };
@@ -39,6 +48,7 @@ function performConcurrentWorkOnRoot(root: FiberRootNode) {
   const finishedWork = root.current.alternate;
   root.finishedWork = finishedWork;
   commitRoot(root);
+  workInProgressRoot = null;
 }
 /**
  * 提交 更新dom
@@ -72,6 +82,8 @@ const renderRootSync = (root: FiberRootNode) => {
  */
 const prepareFreshStack = (root: FiberRootNode) => {
   workInProgress = createWorkInProgress(root.current, null);
+  // 完成队列的并发更新
+  finishQueueingConcurrentUpdates();
 };
 /**
  * 同步工作循环

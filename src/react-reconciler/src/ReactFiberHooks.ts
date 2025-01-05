@@ -1,10 +1,12 @@
 import ReactSharedInternals from "shared/ReactSharedInternals";
 import { FiberNode } from "./ReactFiber";
+import { scheduleUpdateOnFiber } from "./ReactFiberWorkLoop";
+import { enqueueConcurrentHookUpdate } from "./ReactFiberConcurrentUpdates";
 
 /**
  * 当前正在渲染中的 fiber
  */
-let currentRendingFiber: FiberNode = null;
+let currentlyRendingFiber: FiberNode = null;
 
 /**
  * 构建中的hook 正在使用的hook
@@ -24,9 +26,15 @@ const mountReducer = (reducer, initialArg) => {
   hook.memoizedState = initialArg;
   const queue = {
     pending: null,
+    dispatch: null,
   };
   hook.queue = queue;
-  const dispatch = dispatchReducerAction.bind(null, currentRendingFiber, queue);
+  const dispatch = dispatchReducerAction.bind(
+    null,
+    currentlyRendingFiber,
+    queue
+  );
+  queue.dispatch = dispatch;
   return [hook.memoizedState, dispatch];
 };
 /**
@@ -36,7 +44,14 @@ const mountReducer = (reducer, initialArg) => {
  * @param action 动作参数
  */
 const dispatchReducerAction = (fiber: FiberNode, queue, action) => {
-  console.log(fiber, queue, action);
+  // 在每个hook里会存放一个更新队列 更新队列是一个更新对象的循环链表 update1.next => update2.next => update1
+  const update = {
+    action,
+    next: null,
+  };
+  // 把当前最新的更新添加到更新队列中 返回当前的根fiber
+  const root = enqueueConcurrentHookUpdate(fiber, queue, update);
+  scheduleUpdateOnFiber(root);
 };
 
 const mountWorkInProgressHook = () => {
@@ -49,7 +64,7 @@ const mountWorkInProgressHook = () => {
     // 第一个hook
     workInProgressHook = hook;
     // 当前函数组件对应的fiber对应的状态等于第一个hook
-    currentRendingFiber.memoizedState = hook;
+    currentlyRendingFiber.memoizedState = hook;
   } else {
     workInProgressHook.next = hook;
     workInProgressHook = hook;
@@ -75,7 +90,7 @@ export const renderWithHooks = (
   Component,
   props
 ) => {
-  currentRendingFiber = workInProgress; // function component 对应的fiber
+  currentlyRendingFiber = workInProgress; // function component 对应的fiber
   // 在函数组件执行前  给 ReactCurrentDispatcher.current 赋值
   ReactCurrentDispatcher.current = HooksDispatcherOnMount;
   const children = Component(props); // 得到虚拟dom

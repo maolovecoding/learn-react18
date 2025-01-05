@@ -5,21 +5,32 @@ const reducer = (
   state: number,
   action: {
     type: string;
+    payload: number;
   }
 ) => {
-  if (action.type === "add") return state + 1;
+  if (action.type === "add") return state + action.payload;
   return state;
 };
 
 const App = () => {
   const [number, setNumber] = React.useReducer(reducer, 0);
+  const [number2, setNumber2] = React.useReducer(reducer, 0);
   return (
     <button
-      onClick={() =>
+      onClick={() => {
         setNumber({
           type: "add",
-        })
-      }
+          payload: 1,
+        });
+        setNumber({
+          type: "add",
+          payload: 2,
+        });
+        setNumber({
+          type: "add",
+          payload: 3,
+        });
+      }}
     >
       点击{number} + 1
     </button>
