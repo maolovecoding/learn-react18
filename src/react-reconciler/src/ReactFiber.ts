@@ -95,6 +95,7 @@ export const createWorkInProgress = (current: FiberNode, pendingProps) => {
   if (workInProgress === null) {
     // 第一次 是 null
     workInProgress = createFiber(current.tag, pendingProps, current.key);
+    workInProgress.type = current.type;
     // 对应的真实DOM
     workInProgress.stateNode = current.stateNode;
     // 双向指针

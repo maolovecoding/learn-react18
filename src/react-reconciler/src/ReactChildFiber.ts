@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { ReactElementType } from "react/type";
 import {
   createFiberFromElement,
   FiberNode,
   createFiberFromText,
+  createWorkInProgress,
 } from "./ReactFiber";
 import { REACT_ELEMENT_TYPE } from "shared/ReactSymbols";
 import { Placement } from "./ReactFiberFlags";
@@ -13,17 +15,44 @@ import { Placement } from "./ReactFiberFlags";
  */
 const createChildReconciler = (shouldTrackSideEffects: boolean) => {
   /**
+   * 根据老fiber创建复用的fiber
+   * @param fiber 老fiber
+   * @param pendingProps 等待生效的props
+   */
+  const useFiber = (fiber: FiberNode, pendingProps) => {
+    const clone = createWorkInProgress(fiber, pendingProps);
+    clone.index = 0;
+    clone.sibling = null;
+    return clone;
+  };
+  /**
    * 根据虚拟dom创建单元素的fiber
    * @param returnFiber 父fiber
-   * @param currentFirstFiber 老fiber的第一个子fiber
+   * @param currentFirstChild 老fiber的第一个子fiber
    * @param element 虚拟DOM 单节点
    * @returns 返回创建的子fiber
    */
   const reconcileSingleElement = (
     returnFiber: FiberNode,
-    currentFirstFiber: FiberNode,
+    currentFirstChild: FiberNode,
     element: ReactElementType
   ) => {
+    const key = element.key; // 新虚拟dom的唯一标识
+    let child = currentFirstChild; // 老 fc 对应的fiber
+    while (child !== null) {
+      // 判断此老fiber对应的key和新的虚拟dom对象对应的key是否相同
+      if (child.key === key) {
+        // 看类型 type 是否一样
+        // 老fiber对应的类型和新虚拟dom的类型是否相同
+        if (child.type === element.type) {
+          // key和类型都一样，此节点可以复用
+          const existing = useFiber(child, element.props);
+          existing.return = returnFiber;
+          return existing;
+        }
+      }
+      child = child.sibling;
+    }
     // 根据虚拟DOM 创建对应的fiber节点
     const created = createFiberFromElement(element);
     created.return = returnFiber; // 子fiber指向父fiber
@@ -61,12 +90,12 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
   /**
    * 处理多个子节点的情况
    * @param returnFiber
-   * @param currentFirstFiber
+   * @param currentFirstChild
    * @param newChildren
    */
   const reconcileChildrenArray = (
     returnFiber: FiberNode,
-    currentFirstFiber: FiberNode,
+    currentFirstChild: FiberNode,
     newChildren: ReactElementType[]
   ) => {
     let resultingFiberChild: FiberNode = null; // 返回的第一个儿子
@@ -92,7 +121,8 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
    * @returns
    */
   const placeSingleChild = (newFiber: FiberNode) => {
-    if (shouldTrackSideEffects) {
+    // 需要跟踪副作用且页面没有老fiber 其实就是没有这个dom
+    if (shouldTrackSideEffects && newFiber.alternate === null) {
       // 设置插入副作用 在 commit阶段 在容器上插入此节点
       // react渲染分为渲染(创建fiber树)和提交(更新真实DOM)两个阶段
       newFiber.flags |= Placement;
@@ -116,17 +146,17 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
   /**
    * 比较子 fibers  dom-diff 老的子fiber和新的子虚拟DOM进行比较
    * @param returnFiber 新的父fiber
-   * @param currentFirstFiber 老fiber的第一个子fiber
+   * @param currentFirstChild 老fiber的第一个子fiber
    * @param newChild 新的子虚拟DOM
    */
   const reconcileChildFibers = (
     returnFiber: FiberNode,
-    currentFirstFiber: FiberNode,
+    currentFirstChild: FiberNode,
     newChild: ReactElementType | ReactElementType[]
   ) => {
     // 处理是多个子节点的情况
     if (Array.isArray(newChild)) {
-      return reconcileChildrenArray(returnFiber, currentFirstFiber, newChild);
+      return reconcileChildrenArray(returnFiber, currentFirstChild, newChild);
     }
     // 现在考虑只有一个子节点的情况
     if (typeof newChild === "object" && newChild !== null) {
@@ -134,7 +164,7 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
         case REACT_ELEMENT_TYPE: {
           const fiber = reconcileSingleElement(
             returnFiber,
-            currentFirstFiber,
+            currentFirstChild,
             newChild
           ); // 协调单个子元素
           // 插入子子节点

@@ -7,6 +7,7 @@ import {
   appendInitialChild,
   finalizeInitialChildren,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
+import { Update } from "./ReactFiberFlags";
 
 /**
  * 把当前完成的fiber所有的子节点对应的真实DOM都挂载到自己父parent真实DOM上
@@ -58,13 +59,20 @@ export const completeWork = (current: FiberNode, completedWork: FiberNode) => {
       // TODO 现在只是处理创建或者说挂载新节点的逻辑 后面会区分是初次挂载还是更新
       // 原生节点 div span
       const { type } = completedWork;
-      // 创建一个真实的dom实例
-      const instance = createInstance(type, newProps, completedWork);
-      completedWork.stateNode = instance;
-      // 把自己所有的儿子都添加到自己身上
-      appendAllChildren(instance, completedWork);
-      // 完成初始化的儿子
-      finalizeInitialChildren(instance, type, newProps);
+      // 有老fiber 且 老fiber上有对应的真实dom
+      if (current !== null && completedWork.stateNode !== null) {
+        // 走节点更新逻辑
+        updateHostComponent(current, completedWork, type, newProps);
+      } else {
+        // 挂载
+        // 创建一个真实的dom实例
+        const instance = createInstance(type, newProps, completedWork);
+        completedWork.stateNode = instance;
+        // 把自己所有的儿子都添加到自己身上
+        appendAllChildren(instance, completedWork);
+        // 完成初始化的儿子
+        finalizeInitialChildren(instance, type, newProps);
+      }
       // 向上冒泡副作用到父fiber
       bubbleProperties(completedWork);
       break;
@@ -78,6 +86,37 @@ export const completeWork = (current: FiberNode, completedWork: FiberNode) => {
       break;
     }
   }
+};
+/**
+ * fiber完成阶段 准备更新dom
+ * @param current 老fiber
+ * @param completedWork 新fiber
+ * @param type 类型 span
+ * @param newProps 新属性
+ */
+const updateHostComponent = (
+  current: FiberNode,
+  completedWork: FiberNode,
+  type,
+  newProps
+) => {
+  const oldProps = current.memoizedProps; // 老的属性
+  const instance = completedWork.stateNode; // 老的dom节点
+  // 比较新老属性 收集属性的差异
+  // const updatePayload = prepareUpdate(instance, type, oldProps, newProps);
+  const updatePayload = ['children', '6']
+  // 让原生组件的新fiber更新队列等于一个数组 ['id', 'xxx']
+  completedWork.updateQueue = updatePayload;
+  if (updatePayload !== null) {
+    markUpdate(completedWork);
+  }
+};
+/**
+ * 给fiber添加更新标识 更新副作用就是
+ * @param completedWork
+ */
+const markUpdate = (completedWork: FiberNode) => {
+  completedWork.flags |= Update;
 };
 /**
  * 冒泡副作用

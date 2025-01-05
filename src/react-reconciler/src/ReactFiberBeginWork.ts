@@ -71,6 +71,22 @@ const mountIndeterminateComponent = (
   return workInProgress.child;
 };
 
+export const updateFunctionComponent = (
+  current: FiberNode,
+  workInProgress: FiberNode,
+  Component,
+  nextProps
+) => {
+  const nextChildren = renderWithHooks(
+    current,
+    workInProgress,
+    Component,
+    nextProps
+  );
+  reconcileChildren(current, workInProgress, nextChildren); // 协调子节点
+  return workInProgress.child;
+};
+
 /**
  * 根据虚拟DOM构建新的fiber链表
  * child sibling
@@ -90,6 +106,17 @@ export const beginWork = (current: FiberNode, workInProgress: FiberNode) => {
         workInProgress,
         workInProgress.type
       );
+    case FunctionComponent: {
+      // 函数组件
+      const Component = workInProgress.type;
+      const nextProps = workInProgress.pendingProps;
+      return updateFunctionComponent(
+        current,
+        workInProgress,
+        Component,
+        nextProps
+      );
+    }
     case HostRoot:
       return updateHostRoot(current, workInProgress);
     case HostComponent:

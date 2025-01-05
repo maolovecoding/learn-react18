@@ -32,7 +32,7 @@ const App = () => {
         });
       }}
     >
-      点击{number} + 1
+      {number}
     </button>
   );
 };
