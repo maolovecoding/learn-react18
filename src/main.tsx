@@ -1,29 +1,28 @@
+import * as React from "react";
 import { createRoot } from "react-dom/client";
 
+const reducer = (
+  state: number,
+  action: {
+    type: string;
+  }
+) => {
+  if (action.type === "add") return state + 1;
+  return state;
+};
+
 const App = () => {
+  const [number, setNumber] = React.useReducer(reducer, 0);
   return (
-    <h1
-      onClick={(e) => {
-        console.log("父 冒泡 click", e.currentTarget);
-      }}
-      onClickCapture={(e) => {
-        console.log("父 捕获 clickCapture", e.currentTarget);
-      }}
+    <button
+      onClick={() =>
+        setNumber({
+          type: "add",
+        })
+      }
     >
-      hello
-      <span
-        style={{ color: "red" }}
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log("子 冒泡 click", e.currentTarget);
-        }}
-        onClickCapture={(e) =>
-          console.log("子 捕获 clickCapture", e.currentTarget)
-        }
-      >
-        world
-      </span>
-    </h1>
+      点击{number} + 1
+    </button>
   );
 };
 
