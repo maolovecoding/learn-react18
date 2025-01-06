@@ -1,11 +1,17 @@
 import {
   appendChild,
   insertBefore,
+  commitUpdate,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 import { FiberNode } from "./ReactFiber";
-import { MutationMask, Placement } from "./ReactFiberFlags";
+import { MutationMask, Placement, Update } from "./ReactFiberFlags";
 import { FiberRootNode } from "./ReactFiberRoot";
-import { FunctionComponent, HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+} from "./ReactWorkTags";
 
 /**
  * 遍历fiber 执行fiber上的副作用
@@ -16,16 +22,51 @@ export const commitMutationEffectsOnFiber = (
   finishedWork: FiberNode,
   root: FiberRootNode
 ) => {
+  // 老fiber
+  const current = finishedWork.alternate;
+  const flags = finishedWork.flags; // 副作用
   switch (finishedWork.tag) {
     case FunctionComponent:
     case HostRoot:
-    case HostComponent:
     case HostText: {
       // 先遍历它们的子节点，处理子节点上的副作用
       recursivelyTraverseMutationEffects(root, finishedWork);
       // 再处理自己身上的副作用
       commitReconciliationEffects(finishedWork);
+      break;
     }
+    case HostComponent: {
+      // 先遍历它们的子节点，处理子节点上的副作用
+      recursivelyTraverseMutationEffects(root, finishedWork);
+      // 再处理自己身上的副作用
+      commitReconciliationEffects(finishedWork);
+      // 处理dom更新
+      if (flags & Update) {
+        const instance = finishedWork.stateNode; // dom元素
+        if (instance !== null) {
+          // 更新真实 DOM
+          const newProps = finishedWork.memoizedProps;
+          const oldProps = current !== null ? current.memoizedProps : newProps;
+          const type = finishedWork.type;
+          const updatePayload = finishedWork.updateQueue as unknown as string[];
+          finishedWork.updateQueue = null;
+          if (updatePayload !== null) {
+            // 提交更新
+            commitUpdate(
+              instance,
+              updatePayload,
+              type,
+              oldProps,
+              newProps,
+              finishedWork
+            );
+          }
+        }
+      }
+      break;
+    }
+    default:
+      break;
   }
 };
 /**

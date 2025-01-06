@@ -1,5 +1,5 @@
 import { FiberNode } from "react-reconciler/src/ReactFiber";
-import { setInitialProperties } from "./ReactDOMComponent";
+import { diffProperties, setInitialProperties, updateProperties } from "./ReactDOMComponent";
 import { preCacheFiberNode, updateFiberProps } from "./ReactDOMComponentTree";
 
 /**
@@ -68,4 +68,36 @@ export const appendChild = (parentInstance, child) => {
  */
 export const insertBefore = (parentInstance, child, beforeChild) => {
   parentInstance.insertBefore(child, beforeChild);
+};
+
+/**
+ * 准备更新
+ * @param instance dom节点
+ * @param type dom类型 span div
+ * @param oldProps 老属性(已生效)
+ * @param newProps 新属性(待生效)
+ */
+export const prepareUpdate = (instance, type, oldProps, newProps) => {
+  return diffProperties(instance, type, oldProps, newProps);
+};
+/**
+ * 提交更新
+ * @param domElement dom
+ * @param updatePayload 更新
+ * @param type span
+ * @param oldProps 老属性
+ * @param newProps 新属性
+ * @param finishedWork fiber
+ */
+export const commitUpdate = (
+  domElement,
+  updatePayload,
+  type,
+  oldProps,
+  newProps,
+  finishedWork: FiberNode
+) => {
+  // 更新dom属性
+  updateProperties(domElement, updatePayload, type, oldProps, newProps);
+  updateFiberProps(domElement, newProps);
 };

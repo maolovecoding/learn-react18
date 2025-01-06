@@ -15,8 +15,17 @@ const reducer = (
 const App = () => {
   const [number, setNumber] = React.useReducer(reducer, 0);
   const [number2, setNumber2] = React.useReducer(reducer, 0);
+  const attrs = {
+    id: "btn",
+    style: null,
+  };
+  if (number === 6) {
+    delete attrs.id;
+    attrs.style = { color: "red" };
+  }
   return (
     <button
+      {...attrs}
       onClick={() => {
         setNumber({
           type: "add",

@@ -1,11 +1,17 @@
 import logger, { indent } from "shared/logger";
 import { FiberNode } from "./ReactFiber";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+} from "./ReactWorkTags";
 import {
   createTextInstance,
   createInstance,
   appendInitialChild,
   finalizeInitialChildren,
+  prepareUpdate,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 import { Update } from "./ReactFiberFlags";
 
@@ -55,6 +61,9 @@ export const completeWork = (current: FiberNode, completedWork: FiberNode) => {
       // 根fiber有跟节点 具有真实dom
       bubbleProperties(completedWork); // 冒泡属性
       break;
+    case FunctionComponent:
+      bubbleProperties(completedWork);
+      break;
     case HostComponent: {
       // TODO 现在只是处理创建或者说挂载新节点的逻辑 后面会区分是初次挂载还是更新
       // 原生节点 div span
@@ -103,8 +112,7 @@ const updateHostComponent = (
   const oldProps = current.memoizedProps; // 老的属性
   const instance = completedWork.stateNode; // 老的dom节点
   // 比较新老属性 收集属性的差异
-  // const updatePayload = prepareUpdate(instance, type, oldProps, newProps);
-  const updatePayload = ['children', '6']
+  const updatePayload = prepareUpdate(instance, type, oldProps, newProps);
   // 让原生组件的新fiber更新队列等于一个数组 ['id', 'xxx']
   completedWork.updateQueue = updatePayload;
   if (updatePayload !== null) {
