@@ -13,8 +13,7 @@ const reducer = (
 };
 
 const App = () => {
-  const [number, setNumber] = React.useReducer(reducer, 0);
-  const [number2, setNumber2] = React.useReducer(reducer, 0);
+  const [number, setNumber] = React.useState(0);
   const attrs = {
     id: "btn",
     style: null,
@@ -27,18 +26,7 @@ const App = () => {
     <button
       {...attrs}
       onClick={() => {
-        setNumber({
-          type: "add",
-          payload: 1,
-        });
-        setNumber({
-          type: "add",
-          payload: 2,
-        });
-        setNumber({
-          type: "add",
-          payload: 3,
-        });
+        setNumber(number + 1);
       }}
     >
       {number}

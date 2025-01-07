@@ -13,3 +13,12 @@ export const useReducer = (reducer, initialArg) => {
   const dispatcher = resolveDispatcher();
   return dispatcher.useReducer(reducer, initialArg);
 };
+
+/**
+ *
+ * @param initialState 初始状态
+ */
+export const useState = (initialState) => {
+  const dispatcher = resolveDispatcher();
+  return dispatcher.useState(initialState);
+};

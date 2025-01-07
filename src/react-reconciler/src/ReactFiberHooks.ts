@@ -21,6 +21,22 @@ let currentHook = null;
 const { ReactCurrentDispatcher } = ReactSharedInternals;
 
 /**
+ * useState 内置 使用 updateReducer 的 reducer
+ * @param state
+ * @param action
+ */
+const baseStateReducer = (state, action) =>
+  typeof action === "function" ? action(state) : action;
+
+/**
+ * 更新阶段的useState
+ * @param initialState
+ */
+const updateState = (initialState) => {
+  return updateReducer(baseStateReducer, initialState);
+};
+
+/**
  * 更新的时候执行的hook
  * @param reducer
  * @param initialArg
@@ -72,6 +88,58 @@ const updateWorkInProgressHook = () => {
     workInProgressHook = newHook;
   }
   return workInProgressHook;
+};
+
+/**
+ * 挂载的时候执行的 useState
+ * 如果setState两次的值一样 后续是不需要进行更新的
+ * @param initialState
+ */
+const mountState = (initialState) => {
+  const hook = mountWorkInProgressHook();
+  hook.memoizedState = initialState;
+  const queue = {
+    pending: null,
+    dispatch: null,
+    lastRenderedReducer: baseStateReducer, // 上一次的 reducer
+    lastRenderedState: initialState, // 上一次的状态
+  };
+  hook.queue = queue;
+  const dispatch = (queue.dispatch = dispatchSetState.bind(
+    null,
+    currentlyRendingFiber,
+    queue
+  ));
+  return [hook.memoizedState, dispatch];
+};
+/**
+ * setState更新逻辑
+ * @param fiber
+ * @param queue
+ * @param action 新状态 or 设置状态函数  setNumber(1) => setNumber(num => num + 1)
+ */
+const dispatchSetState = (fiber: FiberNode, queue, action) => {
+  const update = {
+    action,
+    hasEagerState: false, // 是否有急切的更新
+    eagerState: null, // 急切的更新状态
+    next: null,
+  };
+  const {
+    lastRenderedReducer, // 上一次的 reducer
+    lastRenderedState, // 上一次的状态
+  } = queue;
+  // 派发动作后 立刻用上一次的reducer和状态 加当前action 计算新状态
+  const eagerState = lastRenderedReducer(lastRenderedState, action); // 计算新状态
+  update.hasEagerState = true;
+  update.eagerState = eagerState;
+  if (Object.is(eagerState, lastRenderedState)) {
+    // setState的值是老状态 不需要更新 就不进行调度了
+    return
+  }
+  // 下面是真正的入队更新，并调度更新
+  const root = enqueueConcurrentHookUpdate(fiber, queue, update);
+  scheduleUpdateOnFiber(root);
 };
 
 /**
@@ -133,10 +201,12 @@ const mountWorkInProgressHook = () => {
 
 const HooksDispatcherOnMount = {
   useReducer: mountReducer,
+  useState: mountState,
 };
 
 const HooksDispatcherOnUpdate = {
   useReducer: updateReducer,
+  useState: updateState,
 };
 
 /**
@@ -167,5 +237,6 @@ export const renderWithHooks = (
   // 重置相关公共变量
   currentlyRendingFiber = null;
   workInProgressHook = null;
+  currentHook = null;
   return children;
 };
