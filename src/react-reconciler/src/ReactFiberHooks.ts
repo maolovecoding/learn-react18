@@ -54,8 +54,13 @@ const updateReducer = (reducer, initialArg) => {
     // pendingQueue.next = null; // 断开循环链表 收尾不相连
     let update = firstUpdate;
     do {
-      const action = update.action; // 获取动作
-      newState = reducer(newState, action); // 获取计算后的新状态
+      // setState 的时候已经计算状态了 直接使用 不在计算本次的update
+      if (update.hasEagerState) {
+        newState = update.eagerState;
+      } else {
+        const action = update.action; // 获取动作
+        newState = reducer(newState, action); // 获取计算后的新状态
+      }
       update = update.next;
     } while (update !== null && update !== firstUpdate);
   }
@@ -135,7 +140,7 @@ const dispatchSetState = (fiber: FiberNode, queue, action) => {
   update.eagerState = eagerState;
   if (Object.is(eagerState, lastRenderedState)) {
     // setState的值是老状态 不需要更新 就不进行调度了
-    return
+    return;
   }
   // 下面是真正的入队更新，并调度更新
   const root = enqueueConcurrentHookUpdate(fiber, queue, update);
