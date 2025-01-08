@@ -25,15 +25,15 @@ const App = () => {
       title
     </div>
   ) : (
-    <div
+    <p
       onClick={() => {
         setNumber(number + 1);
       }}
-      key="title2"
-      id="title2"
+      key="title"
+      id="title"
     >
       title2
-    </div>
+    </p>
   );
 };
 

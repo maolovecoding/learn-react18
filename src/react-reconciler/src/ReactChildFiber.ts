@@ -44,6 +44,23 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
     }
   };
   /**
+   * 删除父fiber的 currentFirstChild 以及后面的所有的兄弟fiber
+   * @param returnFiber
+   * @param currentFirstChild
+   */
+  const deleteRemainingChild = (
+    returnFiber: FiberNode,
+    currentFirstChild: FiberNode
+  ) => {
+    if (!shouldTrackSideEffects) return;
+    let childToDelete = currentFirstChild;
+    while (childToDelete !== null) {
+      deleteChild(returnFiber, childToDelete);
+      childToDelete = childToDelete.sibling;
+    }
+    return null;
+  };
+  /**
    * 根据虚拟dom创建单元素的fiber
    * @param returnFiber 父fiber
    * @param currentFirstChild 老fiber的第一个子fiber
@@ -63,10 +80,16 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
         // 看类型 type 是否一样
         // 老fiber对应的类型和新虚拟dom的类型是否相同
         if (child.type === element.type) {
+          // 单节点的更新 所以删除多余的其他老fiber
+          deleteRemainingChild(returnFiber, child.sibling);
           // key和类型都一样，此节点可以复用
           const existing = useFiber(child, element.props);
           existing.return = returnFiber;
           return existing;
+        } else {
+          // key相同类型不同 div -> span
+          // 不能复用fiber 把剩下的老fiber都删掉 包含当前child fiber
+          deleteRemainingChild(returnFiber, child);
         }
       } else {
         deleteChild(returnFiber, child);
