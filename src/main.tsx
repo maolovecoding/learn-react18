@@ -14,23 +14,26 @@ const reducer = (
 
 const App = () => {
   const [number, setNumber] = React.useState(0);
-  const attrs = {
-    id: "btn",
-    style: null,
-  };
-  if (number === 6) {
-    delete attrs.id;
-    attrs.style = { color: "red" };
-  }
-  return (
-    <button
-      {...attrs}
+  return number % 2 === 0 ? (
+    <div
       onClick={() => {
         setNumber(number + 1);
       }}
+      key="title"
+      id="title"
     >
-      {number}
-    </button>
+      title
+    </div>
+  ) : (
+    <div
+      onClick={() => {
+        setNumber(number + 1);
+      }}
+      key="title"
+      id="title2"
+    >
+      title2
+    </div>
   );
 };
 

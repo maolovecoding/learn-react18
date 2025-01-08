@@ -17,13 +17,13 @@ const RESOLVED_PROPS = {
  * @param config 配置 { children: [], style: {} }
  * @returns
  */
-export const jsxDEV = (type: string, config) => {
+export const jsxDEV = (type: string, config, maybeKey) => {
   let propName: string; // 属性名
   const props = {}; // 属性对象
   let key = null; // 每个虚拟DOM可以有一个可选的key属性 用来区分一个父节点下的不同子节点
   let ref = null; // 通过ref可以获取真实DOM的诉求
-  if (hasValidKey(config)) {
-    key = config.key;
+  if (typeof maybeKey !== 'undefined') {
+    key = maybeKey
   }
   if (hasValidRef(config)) {
     ref = config.key;
