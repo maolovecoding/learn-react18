@@ -29,7 +29,7 @@ const App = () => {
       onClick={() => {
         setNumber(number + 1);
       }}
-      key="title"
+      key="title2"
       id="title2"
     >
       title2

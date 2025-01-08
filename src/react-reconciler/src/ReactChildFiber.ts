@@ -7,7 +7,7 @@ import {
   createWorkInProgress,
 } from "./ReactFiber";
 import { REACT_ELEMENT_TYPE } from "shared/ReactSymbols";
-import { Placement } from "./ReactFiberFlags";
+import { ChildDeletion, Placement } from "./ReactFiberFlags";
 
 /**
  *
@@ -24,6 +24,24 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
     clone.index = 0;
     clone.sibling = null;
     return clone;
+  };
+  /**
+   * 删除父fiber的child子fiber
+   * @param returnFiber
+   * @param childToDelete
+   */
+  const deleteChild = (returnFiber: FiberNode, childToDelete: FiberNode) => {
+    if (!shouldTrackSideEffects) {
+      return;
+    }
+    const deletions = returnFiber.deletions;
+    if (deletions === null) {
+      // 没有要删除的子fiber
+      returnFiber.deletions = [childToDelete];
+      returnFiber.flags |= ChildDeletion; // 删除的副作用
+    } else {
+      deletions.push(childToDelete);
+    }
   };
   /**
    * 根据虚拟dom创建单元素的fiber
@@ -50,6 +68,8 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
           existing.return = returnFiber;
           return existing;
         }
+      } else {
+        deleteChild(returnFiber, child);
       }
       child = child.sibling;
     }

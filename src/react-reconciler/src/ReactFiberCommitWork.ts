@@ -2,6 +2,7 @@ import {
   appendChild,
   insertBefore,
   commitUpdate,
+  removeChild,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 import { FiberNode } from "./ReactFiber";
 import { MutationMask, Placement, Update } from "./ReactFiberFlags";
@@ -12,6 +13,12 @@ import {
   HostRoot,
   HostText,
 } from "./ReactWorkTags";
+import { Container } from "react-dom/client";
+
+/**
+ * 真实DOM的父节点
+ */
+let hostParent: Container = null;
 
 /**
  * 遍历fiber 执行fiber上的副作用
@@ -70,7 +77,7 @@ export const commitMutationEffectsOnFiber = (
   }
 };
 /**
- * 先遍历它们的子节点，处理子节点上的副作用
+ * 先遍历它们的子节点，递归的处理子节点上的副作用
  * @param root
  * @param parentFiber
  */
@@ -78,12 +85,94 @@ const recursivelyTraverseMutationEffects = (
   root: FiberRootNode,
   parentFiber: FiberNode
 ) => {
+  // 先处理要删除的fiber节点
+  const deletions = parentFiber.deletions;
+  if (deletions !== null) {
+    for (const childToDelete of deletions) {
+      commitDeletionEffects(root, parentFiber, childToDelete);
+    }
+  }
   if (parentFiber.subtreeFlags & MutationMask) {
     let { child } = parentFiber;
     while (child !== null) {
       commitMutationEffectsOnFiber(child, root);
       child = child.sibling;
     }
+  }
+};
+/**
+ * 提交删除的副作用
+ * @param root 根
+ * @param returnFiber 父fiber
+ * @param deletedFiber 要删除的fiber
+ */
+const commitDeletionEffects = (
+  root: FiberRootNode,
+  returnFiber: FiberNode,
+  deletedFiber: FiberNode
+) => {
+  // 一直向上找 直到发现一个是真实DOM的fiber为止
+  let parent = returnFiber;
+  findParent: while (parent !== null) {
+    // 找到有真实dom的父fiber
+    switch (parent.tag) {
+      case HostComponent:
+        hostParent = parent.stateNode;
+        break findParent;
+      case HostRoot:
+        hostParent = (parent.stateNode as FiberRootNode).containerInfo;
+        break findParent;
+    }
+    parent = parent.return;
+  }
+  commitDeletionEffectsOnFiber(root, returnFiber, deletedFiber);
+  hostParent = null;
+};
+/**
+ * 在fiber上提交删除的副作用
+ * @param finishedRoot
+ * @param nearestMountedAncestor
+ * @param deletedFiber
+ */
+const commitDeletionEffectsOnFiber = (
+  finishedRoot: FiberRootNode,
+  nearestMountedAncestor: FiberNode,
+  deletedFiber: FiberNode
+) => {
+  switch (deletedFiber.tag) {
+    case HostComponent:
+    case HostText:
+      // TODO 为什么递归？ 考虑到 类组件的存在 div的子节点可能是类组件，需要处理生命周期这种
+      // 递归处理子节点的删除 先删除子节点
+      recursivelyTraverseDeletionEffects(
+        finishedRoot,
+        nearestMountedAncestor,
+        deletedFiber
+      );
+      // 再删除节点自己
+      if (hostParent !== null) {
+        removeChild(hostParent, deletedFiber.stateNode);
+      }
+      break;
+    default:
+      break;
+  }
+};
+/**
+ * 递归删除子节点
+ * @param finishedRoot
+ * @param nearestMountedAncestor
+ * @param parentFiber
+ */
+const recursivelyTraverseDeletionEffects = (
+  finishedRoot: FiberRootNode,
+  nearestMountedAncestor: FiberNode,
+  parentFiber: FiberNode
+) => {
+  let child = parentFiber.child;
+  while (child !== null) {
+    commitDeletionEffectsOnFiber(finishedRoot, nearestMountedAncestor, child);
+    child = child.sibling;
   }
 };
 /**

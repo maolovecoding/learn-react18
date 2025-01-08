@@ -1,5 +1,9 @@
 import { FiberNode } from "react-reconciler/src/ReactFiber";
-import { diffProperties, setInitialProperties, updateProperties } from "./ReactDOMComponent";
+import {
+  diffProperties,
+  setInitialProperties,
+  updateProperties,
+} from "./ReactDOMComponent";
 import { preCacheFiberNode, updateFiberProps } from "./ReactDOMComponentTree";
 
 /**
@@ -100,4 +104,8 @@ export const commitUpdate = (
   // 更新dom属性
   updateProperties(domElement, updatePayload, type, oldProps, newProps);
   updateFiberProps(domElement, newProps);
+};
+
+export const removeChild = (parentInstance: Node, child: Node) => {
+  parentInstance.removeChild(child);
 };

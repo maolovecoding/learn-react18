@@ -76,6 +76,10 @@ export class FiberNode {
    * 索引
    */
   public index: number = 0;
+  /**
+   * 将要删除的子fiber
+   */
+  public deletions: FiberNode[] = null;
 }
 
 export const createFiber = (tag: ReactWorkTagsType, pendingProps, key) => {
