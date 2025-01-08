@@ -152,7 +152,7 @@ const completeUnitOfWork = (unitOfWork: FiberNode) => {
 const printFinishedWork = (fiber: FiberNode) => {
   let child = fiber.child;
   const { flags, deletions } = fiber;
-  if (flags === ChildDeletion) {
+  if ((flags & ChildDeletion) !== NoFlags) {
     fiber.flags &= ~ChildDeletion;
     console.log(
       "子节点有删除" +

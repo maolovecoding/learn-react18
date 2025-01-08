@@ -14,26 +14,36 @@ const reducer = (
 
 const App = () => {
   const [number, setNumber] = React.useState(0);
-  return number % 2 === 0 ? (
-    <div
+  return number === 0 ? (
+    <ul
       onClick={() => {
         setNumber(number + 1);
       }}
       key="title"
       id="title"
     >
-      title
-    </div>
+      <li key="A" id="A">
+        A
+      </li>
+      <li key="B" id="B">
+        B
+      </li>
+      <li key="C" id="C">
+        C
+      </li>
+    </ul>
   ) : (
-    <p
+    <ul
       onClick={() => {
         setNumber(number + 1);
       }}
       key="title"
       id="title"
     >
-      title2
-    </p>
+      <li key="B" id="B2">
+        B2
+      </li>
+    </ul>
   );
 };
 
