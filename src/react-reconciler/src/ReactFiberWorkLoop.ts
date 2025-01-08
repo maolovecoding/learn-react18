@@ -3,9 +3,20 @@ import { FiberRootNode } from "./ReactFiberRoot";
 import { createWorkInProgress, FiberNode } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
 import { completeWork } from "./ReactFiberCompleteWork";
-import { MutationMask, NoFlags, Placement, Update } from "./ReactFiberFlags";
+import {
+  ChildDeletion,
+  MutationMask,
+  NoFlags,
+  Placement,
+  Update,
+} from "./ReactFiberFlags";
 import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+} from "./ReactWorkTags";
 import { finishQueueingConcurrentUpdates } from "./ReactFiberConcurrentUpdates";
 
 /**
@@ -140,31 +151,45 @@ const completeUnitOfWork = (unitOfWork: FiberNode) => {
  */
 const printFinishedWork = (fiber: FiberNode) => {
   let child = fiber.child;
+  const { flags, deletions } = fiber;
+  if (flags === ChildDeletion) {
+    fiber.flags &= ~ChildDeletion;
+    console.log(
+      "子节点有删除" +
+        deletions
+          .map((fiber) => `${fiber.type}#${fiber.memoizedProps.id}`)
+          .join(",")
+    );
+  }
   while (child !== null) {
     printFinishedWork(child);
     child = child.sibling;
   }
   if (fiber.flags !== 0) {
     console.log(
-      getFlags(fiber.flags),
+      getFlags(fiber),
       getTag(fiber.tag),
-      fiber.type,
+      typeof fiber.type === "function" ? fiber.type.name : fiber.type,
       fiber.memoizedProps
     );
   }
 };
 
-const getFlags = (flags) => {
+const getFlags = (fiber: FiberNode) => {
+  const { flags } = fiber;
   if (flags === Placement) {
     return "插入";
   }
   if (flags === Update) {
     return "更新";
   }
+  return flags;
 };
 
 const getTag = (tag) => {
   switch (tag) {
+    case FunctionComponent:
+      return "FunctionComponent";
     case HostRoot:
       return "HostRoot";
     case HostComponent:
