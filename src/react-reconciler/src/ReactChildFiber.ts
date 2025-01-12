@@ -131,6 +131,59 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
     return null;
   };
   /**
+   * 更新元素 新的虚拟dom更新老fiber
+   * @param returnFiber
+   * @param current
+   * @param element
+   */
+  const updateElement = (
+    returnFiber: FiberNode,
+    current: FiberNode,
+    element: ReactElementType // 虚拟dom
+  ) => {
+    // 元素类型 前面调用此方法的时候判断过key了
+    const elementType = element.type;
+    if (current !== null) {
+      if (current.type === elementType) {
+        // 类型 和 key 都一样 复用老fiber
+        const existing = useFiber(current, element.props);
+        existing.return = returnFiber;
+        return existing;
+      }
+    }
+    // key 一样 类型不一样 根据虚拟dom创建新fiber替换
+    const created = createFiberFromElement(element);
+    created.return = returnFiber;
+    return created;
+  };
+  /**
+   *
+   * @param returnFiber 父fiber
+   * @param oldFiber 老fiber
+   * @param newChild 虚拟dom
+   */
+  const updateSlot = (
+    returnFiber: FiberNode,
+    oldFiber: FiberNode,
+    newChild: ReactElementType // 虚拟dom
+  ) => {
+    const key = oldFiber?.key || null;
+    if (newChild !== null && typeof newChild === "object") {
+      // 有新的虚拟dom
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE:
+          if (newChild.key === key) {
+            // key 认为是相同的节点
+            return updateElement(returnFiber, oldFiber, newChild);
+          }
+          break;
+        default:
+          return null;
+      }
+    }
+    return null;
+  };
+  /**
    * 处理多个子节点的情况
    * @param returnFiber
    * @param currentFirstChild
@@ -143,7 +196,31 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
   ) => {
     let resultingFiberChild: FiberNode = null; // 返回的第一个儿子
     let previousNewFiber: FiberNode = null; // 上一个fiber
-    let newIndex = 0;
+    let newIndex = 0; // 遍历新虚拟dom的索引
+    let oldFiber = currentFirstChild; // 第一个老fiber
+    let nextOldFiber = null; // 下一个老fiber
+    // 第一轮循环
+    for (; oldFiber !== null && newIndex < newChildren.length; newIndex++) {
+      nextOldFiber = oldFiber.sibling;
+      const newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIndex]);
+      if (newFiber === null) {
+        break;
+      }
+      if (shouldTrackSideEffects) {
+        if (oldFiber !== null && newFiber.alternate === null) {
+          // 有老fiber 但是不能复用，创建新fiber了。 type类型不一样
+          deleteChild(returnFiber, oldFiber); // 删除老fiber
+        }
+      }
+      placeChild(newFiber, newIndex);
+      if (previousNewFiber === null) {
+        resultingFiberChild = newFiber;
+      } else {
+        previousNewFiber.sibling = newFiber;
+      }
+      previousNewFiber = newFiber;
+      oldFiber = nextOldFiber;
+    }
     for (; newIndex < newChildren.length; newIndex++) {
       const newFiber = createChild(returnFiber, newChildren[newIndex]);
       if (newFiber === null) continue;
@@ -178,13 +255,13 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
    * @param newIndex
    */
   const placeChild = (newFiber: FiberNode, newIndex: number) => {
-    newFiber.index = newIndex;
-    if (shouldTrackSideEffects) {
-      newFiber.flags |= Placement; // 跟踪插入副作用 需要创建真实DOM并插入到父容器
-      // 如果父fiber是初次挂载 shouldTrackSideEffects 是 false 不需要添加flags
-      // 这种情况下会在完成阶段把所有子节点全部添加到自己身上
-    }
-    return newFiber;
+    newFiber.index = newIndex; // 在新fiber上的挂载索引
+    if (!shouldTrackSideEffects) return;
+    const current = newFiber.alternate;
+    if (current !== null) return; // 没有老fiber 说明是新fiber节点 需要插入真实DOM
+    newFiber.flags |= Placement; // 跟踪插入副作用 需要创建真实DOM并插入到父容器
+    // 如果父fiber是初次挂载 shouldTrackSideEffects 是 false 不需要添加flags
+    // 这种情况下会在完成阶段把所有子节点全部添加到自己身上
   };
   /**
    * 比较子 fibers  dom-diff 老的子fiber和新的子虚拟DOM进行比较
