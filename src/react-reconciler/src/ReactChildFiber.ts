@@ -221,6 +221,7 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
       previousNewFiber = newFiber;
       oldFiber = nextOldFiber;
     }
+    // 没有老fiber要处理了， 但是还有新的虚拟DOM 处理插入节点的逻辑
     for (; newIndex < newChildren.length; newIndex++) {
       const newFiber = createChild(returnFiber, newChildren[newIndex]);
       if (newFiber === null) continue;
