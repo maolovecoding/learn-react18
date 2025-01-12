@@ -177,6 +177,9 @@ const printFinishedWork = (fiber: FiberNode) => {
 
 const getFlags = (fiber: FiberNode) => {
   const { flags } = fiber;
+  if (flags === (Placement | Update)) {
+    return "移动";
+  }
   if (flags === Placement) {
     return "插入";
   }

@@ -31,6 +31,15 @@ const App = () => {
       <li key="C" id="C">
         C
       </li>
+      <li key="D" id="D">
+        D
+      </li>
+      <li key="E" id="E">
+        E
+      </li>
+      <li key="F" id="F">
+        F
+      </li>
     </ul>
   ) : (
     <ul
@@ -40,12 +49,26 @@ const App = () => {
       key="title"
       id="title"
     >
-      <li key="A" id="A2">
+      <li key="A" id="A">
         A2
       </li>
-      <p key="B" id="B">
-        B
-      </p>
+
+      <li key="C" id="C">
+        C2
+      </li>
+
+      <li key="E" id="E">
+        E2
+      </li>
+      <li key="B" id="B">
+        B2
+      </li>
+      <li key="G" id="G">
+        G
+      </li>
+      <li key="D" id="D">
+        D2
+      </li>
     </ul>
   );
 };
