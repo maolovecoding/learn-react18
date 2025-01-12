@@ -221,18 +221,25 @@ const createChildReconciler = (shouldTrackSideEffects: boolean) => {
       previousNewFiber = newFiber;
       oldFiber = nextOldFiber;
     }
-    // 没有老fiber要处理了， 但是还有新的虚拟DOM 处理插入节点的逻辑
-    for (; newIndex < newChildren.length; newIndex++) {
-      const newFiber = createChild(returnFiber, newChildren[newIndex]);
-      if (newFiber === null) continue;
-      placeChild(newFiber, newIndex);
-      if (previousNewFiber === null) {
-        resultingFiberChild = newFiber; // 第一个创建的子fiber
-      } else {
-        // 不是大孩子 孩子节点串起来
-        previousNewFiber.sibling = newFiber;
+    if (newIndex === newChildren.length) {
+      // 新的虚拟DOM已经循环完毕 还有老fiber存在的 都需要删除
+      deleteRemainingChild(returnFiber, oldFiber);
+      return resultingFiberChild;
+    }
+    if (oldFiber === null) {
+      // 没有老fiber要处理了， 但是还有新的虚拟DOM 处理插入节点的逻辑
+      for (; newIndex < newChildren.length; newIndex++) {
+        const newFiber = createChild(returnFiber, newChildren[newIndex]);
+        if (newFiber === null) continue;
+        placeChild(newFiber, newIndex);
+        if (previousNewFiber === null) {
+          resultingFiberChild = newFiber; // 第一个创建的子fiber
+        } else {
+          // 不是大孩子 孩子节点串起来
+          previousNewFiber.sibling = newFiber;
+        }
+        previousNewFiber = newFiber;
       }
-      previousNewFiber = newFiber;
     }
     return resultingFiberChild;
   };
