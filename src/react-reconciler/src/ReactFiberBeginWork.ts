@@ -95,8 +95,8 @@ export const updateFunctionComponent = (
  * @param workInProgress 新fiber
  */
 export const beginWork = (current: FiberNode, workInProgress: FiberNode) => {
-  logger(" ".repeat(indent.number) + "beginWork", workInProgress);
-  indent.number += 2;
+  // logger(" ".repeat(indent.number) + "beginWork", workInProgress);
+  // indent.number += 2;
   switch (workInProgress.tag) {
     // 待定的组件 class or function
     case IndeterminateComponent:

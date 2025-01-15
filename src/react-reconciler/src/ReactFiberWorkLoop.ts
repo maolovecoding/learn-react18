@@ -7,10 +7,15 @@ import {
   ChildDeletion,
   MutationMask,
   NoFlags,
+  Passive,
   Placement,
   Update,
 } from "./ReactFiberFlags";
-import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
+import {
+  commitMutationEffectsOnFiber, // 提交DOM操作
+  commitPassiveUnmountEffects, // 销毁destroy函数执行
+  commitPassiveMountEffects, // create effect函数
+} from "./ReactFiberCommitWork";
 import {
   FunctionComponent,
   HostComponent,
@@ -29,6 +34,14 @@ let workInProgress: FiberNode | null = null;
  * 实现批量更新
  */
 let workInProgressRoot: FiberRootNode = null;
+/**
+ * 此根节点上有没有 useEffect 类型的副作用
+ */
+let rootDoesHavePassiveEffect = false;
+/**
+ * 具有 useEffect 副作用的根节点  FiberRootNode
+ */
+let rootWithPendingPassiveEffects: FiberRootNode | null = null;
 
 /**
  * 在fiber上调度更新
@@ -62,19 +75,48 @@ function performConcurrentWorkOnRoot(root: FiberRootNode) {
   workInProgressRoot = null;
 }
 /**
+ * 刷新副作用 开启了新的宏任务
+ */
+const flushPassiveEffect = () => {
+  if (rootWithPendingPassiveEffects !== null) {
+    const root = rootWithPendingPassiveEffects;
+    // 执行卸载副作用
+    commitPassiveUnmountEffects(root.current);
+    // 执行挂载副作用
+    commitPassiveMountEffects(root, root.current);
+    rootWithPendingPassiveEffects = null
+  }
+};
+/**
  * 提交 更新dom
  * @param root
  */
 const commitRoot = (root: FiberRootNode) => {
   const { finishedWork } = root;
-  printFinishedWork(finishedWork);
+  // printFinishedWork(finishedWork);
+  if (
+    (finishedWork.subtreeFlags & Passive) !== NoFlags ||
+    (finishedWork.flags & Passive) !== NoFlags
+  ) {
+    // 现在根节点有要执行的副作用
+    if (!rootDoesHavePassiveEffect) {
+      rootDoesHavePassiveEffect = true;
+      // 开启了新的宏任务 页面绘制后执行
+      scheduleCallback(flushPassiveEffect);
+    }
+  }
   // 子节点的副作用
   const subtreeHasEffects =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
   const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
   // 看子树有没有副作用 根节点有没有副作用
   if (subtreeHasEffects || rootHasEffect) {
+    // 当DOM执行变更之后
     commitMutationEffectsOnFiber(finishedWork, root);
+    if (rootDoesHavePassiveEffect) {
+      rootDoesHavePassiveEffect = false;
+      rootWithPendingPassiveEffects = root; // 赋值根fiber
+    }
   }
   // 更新当前的fiber树
   root.current = finishedWork;

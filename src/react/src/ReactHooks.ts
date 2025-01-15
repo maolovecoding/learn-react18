@@ -22,3 +22,8 @@ export const useState = (initialState) => {
   const dispatcher = resolveDispatcher();
   return dispatcher.useState(initialState);
 };
+
+export const useEffect = (effect: () => void | (() => void)) => {
+  const dispatcher = resolveDispatcher();
+  return dispatcher.useEffect(effect);
+};

@@ -5,7 +5,17 @@ import {
   removeChild,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 import { FiberNode } from "./ReactFiber";
-import { MutationMask, Placement, Update } from "./ReactFiberFlags";
+import {
+  MutationMask,
+  NoFlags,
+  Passive,
+  Placement,
+  Update,
+} from "./ReactFiberFlags";
+import {
+  HasEffect as HookHasEffect,
+  Passive as HookPassive,
+} from "./ReactHookEffectTags";
 import { FiberRootNode } from "./ReactFiberRoot";
 import {
   FunctionComponent,
@@ -305,4 +315,155 @@ const getHostParentFiber = (fiber: FiberNode) => {
 const isHostParent = (fiber: FiberNode) => {
   const parentTag = fiber.tag;
   return parentTag === HostComponent || parentTag === HostRoot;
+};
+
+/**
+ * 销毁 destroy effect的执行
+ * @param finishedWork
+ */
+export const commitPassiveUnmountEffects = (finishedWork: FiberNode) => {
+  commitPassiveUnmountOnFiber(finishedWork);
+};
+
+const commitPassiveUnmountOnFiber = (finishedWork: FiberNode) => {
+  const flags = finishedWork.flags;
+  switch (finishedWork.tag) {
+    case HostRoot:
+      recursivelyTraversePassiveUnmountEffects(finishedWork);
+      break;
+    case FunctionComponent:
+      recursivelyTraversePassiveUnmountEffects(finishedWork);
+      if (flags & Passive) {
+        // 1024
+        commitHookPassiveUnmountEffects(
+          finishedWork,
+          HookPassive | HookHasEffect
+        );
+      }
+      break;
+  }
+};
+
+const recursivelyTraversePassiveUnmountEffects = (parentFiber: FiberNode) => {
+  if ((parentFiber.subtreeFlags & Passive) !== NoFlags) {
+    let child = parentFiber.child;
+    while (child !== null) {
+      commitPassiveUnmountOnFiber(child);
+      child = child.sibling;
+    }
+  }
+};
+/**
+ * create effect 副作用的执行
+ * @param root
+ * @param finishedWork
+ */
+export const commitPassiveMountEffects = (
+  root: FiberRootNode,
+  finishedWork: FiberNode
+) => {
+  commitPassiveMountOnFiber(root, finishedWork);
+};
+
+const commitHookPassiveUnmountEffects = (
+  finishedWork: FiberNode,
+  hookFlags: number
+) => {
+  commitHookEffectListUnmount(hookFlags, finishedWork);
+};
+/**
+ * 提交副作用链表 updateQueue => effect1 => effect2
+ * 执行hook的链表（updateQueue）
+ * @param finishedWork
+ * @param flags
+ */
+const commitHookEffectListUnmount = (
+  flags: number,
+  finishedWork: FiberNode
+) => {
+  const updateQueue = finishedWork.updateQueue;
+  const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
+  if (lastEffect !== null) {
+    const firstEffect = lastEffect.next;
+    let effect = firstEffect;
+    do {
+      if ((effect.tag & flags) === flags) {
+        const destroy = effect.destroy;
+        if (destroy !== undefined) {
+          destroy();
+        }
+      }
+      effect = effect.next;
+    } while (effect !== firstEffect);
+  }
+};
+
+export const commitPassiveMountOnFiber = (
+  finishedRoot: FiberRootNode,
+  finishedWork: FiberNode
+) => {
+  const flags = finishedWork.flags;
+  switch (finishedWork.tag) {
+    case HostRoot:
+      recursivelyTraversePassiveMountEffects(finishedRoot, finishedWork);
+      break;
+    case FunctionComponent:
+      recursivelyTraversePassiveMountEffects(finishedRoot, finishedWork);
+      if (flags & Passive) {
+        // 1024
+        commitHookPassiveMountEffects(
+          finishedWork,
+          HookPassive | HookHasEffect
+        );
+      }
+      break;
+  }
+};
+/**
+ * 深度优先遍历子fiber
+ * @param root
+ * @param parentFiber
+ */
+const recursivelyTraversePassiveMountEffects = (
+  root: FiberRootNode,
+  parentFiber: FiberNode
+) => {
+  if ((parentFiber.subtreeFlags & Passive) !== NoFlags) {
+    let child = parentFiber.child;
+    while (child !== null) {
+      commitPassiveMountOnFiber(root, child);
+      child = child.sibling;
+    }
+  }
+};
+/**
+ *
+ * @param finishedWork
+ * @param hookFlags
+ */
+const commitHookPassiveMountEffects = (
+  finishedWork: FiberNode,
+  hookFlags: number
+) => {
+  commitHookEffectListMount(hookFlags, finishedWork);
+};
+/**
+ * 执行hook的链表（updateQueue）
+ * @param hookFlags
+ * @param finishedWork
+ */
+const commitHookEffectListMount = (flags: number, finishedWork: FiberNode) => {
+  const updateQueue = finishedWork.updateQueue;
+  const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
+  if (lastEffect !== null) {
+    const firstEffect = lastEffect.next;
+    let effect = firstEffect;
+    do {
+      if ((effect.tag & flags) === flags) {
+        const create = effect.create;
+        effect.destroy = create();
+      }
+      effect = effect.next;
+    } while (effect !== firstEffect);
+  }
 };

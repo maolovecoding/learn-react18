@@ -53,8 +53,8 @@ export const appendAllChildren = (
  * @param returnFiber
  */
 export const completeWork = (current: FiberNode, completedWork: FiberNode) => {
-  indent.number -= 2;
-  logger(" ".repeat(indent.number) + "completeWork", completedWork);
+  // indent.number -= 2;
+  // logger(" ".repeat(indent.number) + "completeWork", completedWork);
   const newProps = completedWork.pendingProps;
   switch (completedWork.tag) {
     case HostRoot:

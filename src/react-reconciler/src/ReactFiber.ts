@@ -152,9 +152,12 @@ const createFiberFromTypeAndProps = (type, key, pendingProps) => {
 };
 
 export interface IUpdateQueue {
-  shared: {
+  shared?: {
     pending: null | IUpdate;
-  };
+  } | null;
+  lastEffect?: {
+    next;
+  } | null;
 }
 
 export interface IUpdate {

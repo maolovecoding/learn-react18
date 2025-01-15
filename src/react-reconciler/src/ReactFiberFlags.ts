@@ -18,3 +18,7 @@ export const ChildDeletion = 0b1000;
  * 修改操作掩码
  */
 export const MutationMask = Placement | Update;
+/**
+ * 函数组件使用过 useEffect 后 fiber会具有此标识
+ */
+export const Passive = 0b10000000000;

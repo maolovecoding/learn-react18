@@ -13,63 +13,38 @@ const reducer = (
 };
 
 const App = () => {
+  console.log("------ App render ---------");
   const [number, setNumber] = React.useState(0);
-  return number === 0 ? (
-    <ul
+  React.useEffect(() => {
+    console.log("useEffect 1");
+    const timer = setInterval(() => {
+      setNumber(number + 1);
+    }, 1000);
+    return () => {
+      console.log("destroy useEffect 1");
+      clearInterval(timer);
+    };
+  });
+  // React.useEffect(() => {
+  //   console.log("useEffect 2");
+  //   return () => {
+  //     console.log("destroy useEffect 2");
+  //   };
+  // });
+  // React.useEffect(() => {
+  //   console.log("useEffect 3");
+  //   return () => {
+  //     console.log("destroy useEffect 3");
+  //   };
+  // });
+  return (
+    <button
       onClick={() => {
         setNumber(number + 1);
       }}
-      key="title"
-      id="title"
     >
-      <li key="A" id="A">
-        A
-      </li>
-      <li key="B" id="B">
-        B
-      </li>
-      <li key="C" id="C">
-        C
-      </li>
-      <li key="D" id="D">
-        D
-      </li>
-      <li key="E" id="E">
-        E
-      </li>
-      <li key="F" id="F">
-        F
-      </li>
-    </ul>
-  ) : (
-    <ul
-      onClick={() => {
-        setNumber(number + 1);
-      }}
-      key="title"
-      id="title"
-    >
-      <li key="A" id="A">
-        A2
-      </li>
-
-      <li key="C" id="C">
-        C2
-      </li>
-
-      <li key="E" id="E">
-        E2
-      </li>
-      <li key="B" id="B">
-        B2
-      </li>
-      <li key="G" id="G">
-        G
-      </li>
-      <li key="D" id="D">
-        D2
-      </li>
-    </ul>
+      {number}
+    </button>
   );
 };
 
