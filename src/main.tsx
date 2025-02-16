@@ -24,7 +24,7 @@ const App = () => {
       console.log("destroy useEffect 1");
       clearInterval(timer);
     };
-  });
+  }, []);
   // React.useEffect(() => {
   //   console.log("useEffect 2");
   //   return () => {

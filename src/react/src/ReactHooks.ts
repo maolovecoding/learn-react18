@@ -23,7 +23,7 @@ export const useState = (initialState) => {
   return dispatcher.useState(initialState);
 };
 
-export const useEffect = (effect: () => void | (() => void)) => {
+export const useEffect = (effect: () => void | (() => void), deps) => {
   const dispatcher = resolveDispatcher();
-  return dispatcher.useEffect(effect);
+  return dispatcher.useEffect(effect, deps);
 };
