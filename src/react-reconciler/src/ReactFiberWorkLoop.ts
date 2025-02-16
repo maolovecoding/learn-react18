@@ -15,6 +15,7 @@ import {
   commitMutationEffectsOnFiber, // 提交DOM操作
   commitPassiveUnmountEffects, // 销毁destroy函数执行
   commitPassiveMountEffects, // create effect函数
+  commitLayoutEffects, // 执行layoutEffect
 } from "./ReactFiberCommitWork";
 import {
   FunctionComponent,
@@ -84,7 +85,7 @@ const flushPassiveEffect = () => {
     commitPassiveUnmountEffects(root.current);
     // 执行挂载副作用
     commitPassiveMountEffects(root, root.current);
-    rootWithPendingPassiveEffects = null
+    rootWithPendingPassiveEffects = null;
   }
 };
 /**
@@ -113,6 +114,8 @@ const commitRoot = (root: FiberRootNode) => {
   if (subtreeHasEffects || rootHasEffect) {
     // 当DOM执行变更之后
     commitMutationEffectsOnFiber(finishedWork, root);
+    // 执行 layoutEffect
+    commitLayoutEffects(finishedWork, root);
     if (rootDoesHavePassiveEffect) {
       rootDoesHavePassiveEffect = false;
       rootWithPendingPassiveEffects = root; // 赋值根fiber

@@ -18,19 +18,19 @@ const App = () => {
   React.useEffect(() => {
     console.log("useEffect 1");
     const timer = setInterval(() => {
-      setNumber(number + 1);
+      setNumber(number => number + 1);
     }, 1000);
     return () => {
       console.log("destroy useEffect 1");
       clearInterval(timer);
     };
   }, []);
-  // React.useEffect(() => {
-  //   console.log("useEffect 2");
-  //   return () => {
-  //     console.log("destroy useEffect 2");
-  //   };
-  // });
+  React.useLayoutEffect(() => {
+    console.log("useLayoutEffect 2");
+    return () => {
+      console.log("destroy useLayoutEffect 2");
+    };
+  });
   // React.useEffect(() => {
   //   console.log("useEffect 3");
   //   return () => {

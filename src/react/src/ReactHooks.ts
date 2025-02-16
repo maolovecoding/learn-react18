@@ -27,3 +27,9 @@ export const useEffect = (effect: () => void | (() => void), deps) => {
   const dispatcher = resolveDispatcher();
   return dispatcher.useEffect(effect, deps);
 };
+
+
+export const useLayoutEffect = (effect: () => void | (() => void), deps) => {
+  const dispatcher = resolveDispatcher();
+  return dispatcher.useLayoutEffect(effect, deps);
+};

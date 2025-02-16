@@ -2,10 +2,14 @@ import ReactSharedInternals from "shared/ReactSharedInternals";
 import { FiberNode } from "./ReactFiber";
 import { scheduleUpdateOnFiber } from "./ReactFiberWorkLoop";
 import { enqueueConcurrentHookUpdate } from "./ReactFiberConcurrentUpdates";
-import { Passive as PassiveEffect } from "./ReactFiberFlags";
+import {
+  Passive as PassiveEffect,
+  Update as UpdateEffect,
+} from "./ReactFiberFlags";
 import {
   HasEffect as HookHasEffect,
   Passive as HookPassive,
+  Layout as HookLayout,
 } from "./ReactHookEffectTags";
 /**
  * 当前正在渲染中的 fiber
@@ -34,6 +38,10 @@ const baseStateReducer = (state, action) =>
 
 const updateEffect = (create, deps) => {
   return updateEffectImpl(PassiveEffect, HookPassive, create, deps);
+};
+
+const updateLayoutEffect = (create, deps) => {
+  return updateEffectImpl(UpdateEffect, HookLayout, create, deps);
 };
 
 /**
@@ -268,6 +276,14 @@ const mountEffect = (effect: () => void | (() => void), deps) => {
   return mountEffectImpl(PassiveEffect, HookPassive, effect, deps);
 };
 /**
+ * 挂载layoutEffect
+ * @param effect
+ * @param deps
+ */
+const mountLayoutEffect = (effect: () => void | (() => void), deps) => {
+  return mountEffectImpl(UpdateEffect, HookLayout, effect, deps);
+};
+/**
  *
  * @param fiberFlags fiber副作用
  * @param hookFlags hook副作用
@@ -333,12 +349,14 @@ const HooksDispatcherOnMount = {
   useReducer: mountReducer,
   useState: mountState,
   useEffect: mountEffect,
+  useLayoutEffect: mountLayoutEffect,
 };
 
 const HooksDispatcherOnUpdate = {
   useReducer: updateReducer,
   useState: updateState,
   useEffect: updateEffect,
+  useLayoutEffect: updateLayoutEffect,
 };
 
 /**
