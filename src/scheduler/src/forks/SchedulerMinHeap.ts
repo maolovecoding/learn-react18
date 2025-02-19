@@ -1,6 +1,10 @@
 export interface IHeapNode {
-  sortIndex: number; // 越小优先级越高
+  sortIndex: number; // 越小优先级越高 排序依赖
   id: number;
+  callback: () => void | (() => void); // 任务函数
+  priorityLevel: number; // 优先级
+  startTime: number; // 开始时间
+  expirationTime: number; // 任务的过期时间
 }
 /**
  * 向最小堆添加节点
@@ -101,7 +105,7 @@ const compare = (a: IHeapNode, b: IHeapNode) => {
   return diff !== 0 ? diff : a.id - b.id;
 };
 
-export { push, pop, siftDown, siftUp };
+export { push, pop, siftDown, siftUp, peek };
 
 // const heap = [];
 // let id = 1;

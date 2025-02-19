@@ -15,16 +15,16 @@ const reducer = (
 const App = () => {
   console.log("------ App render ---------");
   const [number, setNumber] = React.useState(0);
-  React.useEffect(() => {
-    console.log("useEffect 1");
-    const timer = setInterval(() => {
-      setNumber(number => number + 1);
-    }, 1000);
-    return () => {
-      console.log("destroy useEffect 1");
-      clearInterval(timer);
-    };
-  }, []);
+  // React.useEffect(() => {
+  //   console.log("useEffect 1");
+  //   const timer = setInterval(() => {
+  //     setNumber(number => number + 1);
+  //   }, 1000);
+  //   return () => {
+  //     console.log("destroy useEffect 1");
+  //     clearInterval(timer);
+  //   };
+  // }, []);
   React.useLayoutEffect(() => {
     console.log("useLayoutEffect 2");
     return () => {

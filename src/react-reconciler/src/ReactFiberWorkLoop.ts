@@ -1,4 +1,8 @@
-import { scheduleCallback } from "scheduler/index";
+import {
+  scheduleCallback,
+  NormalPriority as NormalSchedulerPriority,
+  shouldYield,
+} from "scheduler/index";
 import { FiberRootNode } from "./ReactFiberRoot";
 import { createWorkInProgress, FiberNode } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
@@ -58,7 +62,10 @@ const ensureRootIsScheduled = (root: FiberRootNode) => {
   if (workInProgressRoot !== null) return;
   workInProgressRoot = root; // 实现批量更新
   // 告诉浏览器 执行 root 上的 并发更新工作 performConcurrentWorkOnRoot
-  scheduleCallback(performConcurrentWorkOnRoot.bind(null, root));
+  scheduleCallback(
+    NormalSchedulerPriority,
+    performConcurrentWorkOnRoot.bind(null, root)
+  );
 };
 
 /**
@@ -103,7 +110,7 @@ const commitRoot = (root: FiberRootNode) => {
     if (!rootDoesHavePassiveEffect) {
       rootDoesHavePassiveEffect = true;
       // 开启了新的宏任务 页面绘制后执行
-      scheduleCallback(flushPassiveEffect);
+      scheduleCallback(NormalSchedulerPriority, flushPassiveEffect);
     }
   }
   // 子节点的副作用
@@ -146,6 +153,15 @@ const prepareFreshStack = (root: FiberRootNode) => {
  */
 const workLoopSync = () => {
   while (workInProgress !== null) {
+    performUnitOfWork(workInProgress);
+  }
+};
+/**
+ * 并发的工作循环
+ */
+const workLoopConcurrent = () => {
+  // 有下一个需要构建的fiber 且时间片没有过期
+  while (workInProgress !== null && !shouldYield()) {
     performUnitOfWork(workInProgress);
   }
 };

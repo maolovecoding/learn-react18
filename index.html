@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,5 +9,14 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      const mc = new MessageChannel();
+      const p1 = mc.port1;
+      const p2 = mc.port2;
+      p1.onmessage = (e) => {
+        console.log("p1 接受 p2的消息", e.data);
+      };
+      p2.postMessage('发射消息给p1')
+    </script>
   </body>
 </html>
